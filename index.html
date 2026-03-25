@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💣 Kitsune Agency</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0d0d1a;--bg2:#12122a;--bg3:#1a1a3e;--wall:#1e2d5a;--floor:#111128;
+  --red:#e94560;--yellow:#f5a623;--green:#4ecdc4;--blue:#45b7d1;
+  --purple:#a855f7;--white:#e8e8f0;--gray:#5a5a8a;
+  --gemini:#4285f4;--nb:#ff6b35;--wa:#25d366;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--white);font-family:'VT323',monospace;}
+#shell{display:flex;flex-direction:column;height:100vh;}
+
+/* NAV */
+#topnav{display:flex;align-items:center;background:var(--bg2);border-bottom:2px solid var(--red);padding:0 14px;height:48px;gap:0;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+#topnav::-webkit-scrollbar{display:none;}
+.nbrand{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--red);margin-right:16px;white-space:nowrap;flex-shrink:0;}
+.ntab{padding:0 11px;height:48px;display:flex;align-items:center;font-size:13px;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.ntab:hover{color:var(--white);}
+.ntab.active{color:var(--white);border-bottom-color:var(--red);}
+.nsp{flex:1;}
+.nbadge{padding:3px 9px;border-radius:6px;font-size:11px;cursor:pointer;flex-shrink:0;margin-left:4px;}
+.nb-wa{background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.35);color:var(--wa);}
+.nb-gem{background:rgba(66,133,244,.12);border:1px solid rgba(66,133,244,.35);color:var(--gemini);}
+
+#main{display:flex;flex:1;min-height:0;overflow:hidden;}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+.pscroll{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+/* SHARED */
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:9px;}
+.card-title{font-family:'Press Start 2P',monospace;font-size:7px;margin-bottom:2px;}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.scard{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:11px;display:flex;flex-direction:column;gap:3px;}
+.scard-lbl{font-size:11px;color:var(--gray);}
+.scard-val{font-size:21px;color:var(--white);}
+.scard-sub{font-size:11px;}
+.btn{padding:8px 14px;border-radius:7px;font-size:14px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--white);font-family:'VT323',monospace;transition:all .2s;}
+.btn:hover{background:rgba(255,255,255,.08);}
+.btn.primary{background:var(--red);border-color:var(--red);color:#fff;}
+.btn.primary:hover{filter:brightness(1.1);}
+.btn.success{background:rgba(78,205,196,.15);border-color:rgba(78,205,196,.4);color:var(--green);}
+.btn.wa{background:rgba(37,211,102,.15);border-color:rgba(37,211,102,.4);color:var(--wa);}
+label{font-size:13px;color:var(--gray);}
+input[type=text],input[type=number],input[type=password],textarea,select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:8px 11px;font-family:'VT323',monospace;font-size:15px;color:var(--white);outline:none;width:100%;}
+input:focus,textarea:focus,select:focus{border-color:var(--red);}
+input::placeholder,textarea::placeholder{color:var(--gray);}
+select option{background:var(--bg2);}
+.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;}
+.badge-g{background:rgba(78,205,196,.15);color:var(--green);border:1px solid rgba(78,205,196,.25);}
+.badge-y{background:rgba(245,166,35,.15);color:var(--yellow);border:1px solid rgba(245,166,35,.25);}
+.badge-r{background:rgba(233,69,96,.15);color:var(--red);border:1px solid rgba(233,69,96,.25);}
+.badge-b{background:rgba(66,133,244,.15);color:var(--gemini);border:1px solid rgba(66,133,244,.25);}
+.pbar-bg{background:rgba(255,255,255,.08);border-radius:4px;height:5px;}
+.pbar{height:5px;border-radius:4px;}
+.divider{border:none;border-top:1px solid rgba(255,255,255,.07);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+
+/* MAP SCREEN */
+#map-screen{flex-direction:row;}
+#game-area{flex:1;display:flex;flex-direction:column;min-width:0;}
+#map-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:var(--floor);position:relative;overflow:hidden;}
+#map-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 41px,rgba(255,255,255,.018) 42px),repeating-linear-gradient(90deg,transparent,transparent 41px,rgba(255,255,255,.018) 42px);pointer-events:none;}
+#grid{display:grid;grid-template-columns:repeat(13,40px);grid-template-rows:repeat(9,40px);gap:2px;}
+.cell{width:40px;height:40px;border-radius:3px;display:flex;align-items:center;justify-content:center;position:relative;transition:transform .15s;}
+.cell.wall{background:var(--wall);border:1px solid rgba(255,255,255,.1);}
+.cell.wall::after{content:'';position:absolute;inset:3px;background:rgba(255,255,255,.05);border-radius:2px;}
+.cell.floor{background:var(--floor);border:1px solid rgba(255,255,255,.03);}
+.cell.soft{background:#1a2d5a;border:1px solid #2a3d7a;}
+.cell.trail{animation:trail .9s ease-out forwards;}
+@keyframes trail{0%{background:rgba(78,205,196,.25)}100%{background:var(--floor);}}
+.cell.ac{cursor:pointer;}
+.cell.ac:hover{transform:scale(1.15);z-index:20;}
+.cell.ac:hover .tip{opacity:1;transform:translateX(-50%) translateY(-4px);}
+.spr{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid rgba(255,255,255,.22);animation:bob 2s ease-in-out infinite;position:relative;}
+.sdot{position:absolute;bottom:0;right:0;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--bg);}
+.tip{position:absolute;bottom:110%;left:50%;transform:translateX(-50%) translateY(0);background:#000d;border:1px solid var(--red);color:var(--white);font-size:11px;padding:4px 8px;border-radius:5px;white-space:nowrap;opacity:0;transition:all .2s;pointer-events:none;z-index:50;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.bp .spr{animation:bpulse .5s infinite!important;}
+@keyframes bpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.exp{position:absolute;inset:0;border-radius:3px;z-index:30;animation:expl .5s ease-out forwards;}
+@keyframes expl{0%{background:var(--yellow);opacity:1;transform:scale(.4)}50%{background:var(--red);opacity:.9;transform:scale(1.4)}100%{background:transparent;opacity:0;transform:scale(1)}}
+#agent-feed{background:var(--bg2);border-top:2px solid var(--wall);padding:7px 14px;height:78px;overflow-y:auto;scrollbar-width:thin;flex-shrink:0;}
+.flbl{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--gray);margin-bottom:4px;}
+#flog{display:flex;flex-direction:column;gap:2px;}
+.fi{font-size:12px;display:flex;gap:6px;}
+.ft{color:var(--gray);font-size:10px;flex-shrink:0;}.fx{color:#b0b0d0;}
+
+/* CHAT SIDE */
+#cside{width:295px;background:var(--bg2);border-left:2px solid var(--wall);display:flex;flex-direction:column;flex-shrink:0;}
+#chdr{background:var(--bg);border-bottom:2px solid var(--wall);padding:9px 13px;flex-shrink:0;}
+#chdr .ct{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--red);}
+#chdr .cs{font-size:12px;color:var(--gray);margin-top:2px;}
+#achips{display:flex;flex-wrap:wrap;gap:3px;padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.chip{padding:3px 7px;border-radius:12px;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--gray);transition:all .2s;}
+.chip:hover{color:var(--white);}
+.chip.on{color:var(--white);border-color:var(--red);background:rgba(233,69,96,.15);}
+#msgs{flex:1;overflow-y:auto;padding:9px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;}
+.msg{display:flex;flex-direction:column;gap:2px;animation:ms .25s ease-out;}
+@keyframes ms{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-items:flex-end;}.msg.bot{align-items:flex-start;}.msg.sys{align-items:center;}
+.msn{font-size:10px;color:var(--gray);padding:0 3px;}
+.mbb{padding:7px 10px;border-radius:9px;font-size:14px;line-height:1.4;max-width:220px;word-break:break-word;}
+.msg.user .mbb{background:var(--red);color:#fff;border-bottom-right-radius:2px;}
+.msg.bot .mbb{background:rgba(255,255,255,.06);color:var(--white);border:1px solid rgba(255,255,255,.1);border-bottom-left-radius:2px;}
+.msg.sys .mbb{background:rgba(78,205,196,.1);color:var(--green);border:1px solid rgba(78,205,196,.2);font-size:11px;text-align:center;}
+.tdots{display:flex;gap:3px;align-items:center;}
+.td{width:5px;height:5px;border-radius:50%;background:var(--gray);animation:tdot 1.2s infinite;}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+#ciw{padding:8px 9px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:5px;flex-shrink:0;}
+#cin{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 9px;font-family:'VT323',monospace;font-size:15px;color:var(--white);outline:none;resize:none;}
+#cin:focus{border-color:var(--red);}#cin::placeholder{color:var(--gray);}
+#csb{background:var(--red);border:none;border-radius:7px;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:0 10px;cursor:pointer;}
+#csb:disabled{opacity:.4;}
+
+/* PIPELINE SCREEN */
+#pip-screen{flex-direction:row;}
+#pip-map{flex:1;display:flex;flex-direction:column;min-width:0;}
+#pip-grid-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:var(--floor);position:relative;overflow:hidden;}
+#pip-grid{display:grid;grid-template-columns:repeat(13,40px);grid-template-rows:repeat(9,40px);gap:2px;position:relative;}
+.pcell{width:40px;height:40px;border-radius:3px;display:flex;align-items:center;justify-content:center;position:relative;}
+.pcell.wall{background:var(--wall);border:1px solid rgba(255,255,255,.1);}
+.pcell.wall::after{content:'';position:absolute;inset:3px;background:rgba(255,255,255,.05);border-radius:2px;}
+.pcell.floor{background:var(--floor);border:1px solid rgba(255,255,255,.03);}
+.pcell.soft{background:#1a2d5a;border:1px solid #2a3d7a;}
+.pcell.trail{animation:trail .9s ease-out forwards;}
+.pspr{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid rgba(255,255,255,.2);position:absolute;z-index:10;transition:left .32s cubic-bezier(.4,0,.2,1),top .32s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.pspr.idle{animation:bob 2s ease-in-out infinite;}
+.pspr.moving{animation:run .28s steps(2) infinite;}
+.pspr.working{animation:work .5s ease-in-out infinite;}
+@keyframes run{0%{transform:scaleX(1) translateY(-2px)}50%{transform:scaleX(-1) translateY(2px)}}
+@keyframes work{0%,100%{transform:scale(1) rotate(-5deg)}50%{transform:scale(1.15) rotate(5deg)}}
+.pdot{position:absolute;bottom:1px;right:1px;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--bg);}
+.dot-idle{background:var(--gray);}
+.dot-w{background:var(--green);animation:pp 1.2s infinite;}
+.dot-m{background:var(--yellow);animation:pp .6s infinite;}
+@keyframes pp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+.pkg{position:absolute;z-index:8;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:left .32s cubic-bezier(.4,0,.2,1),top .32s cubic-bezier(.4,0,.2,1);animation:pkb .5s ease-in-out infinite;pointer-events:none;}
+@keyframes pkb{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.pexp{position:absolute;inset:0;border-radius:3px;z-index:20;animation:expl .5s ease-out forwards;pointer-events:none;}
+.bbl{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid;border-radius:8px;padding:4px 8px;font-size:11px;white-space:nowrap;z-index:30;animation:bb-in .2s ease-out;pointer-events:none;}
+@keyframes bb-in{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+#pip-panel{width:320px;background:var(--bg2);border-left:2px solid var(--wall);display:flex;flex-direction:column;flex-shrink:0;}
+#pip-flow{padding:10px;border-bottom:2px solid var(--wall);flex-shrink:0;}
+.pf-ttl{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--yellow);margin-bottom:7px;}
+.pip-steps{display:flex;flex-direction:column;gap:4px;}
+.ps{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);transition:all .3s;}
+.ps.active{border-color:var(--yellow);background:rgba(245,166,35,.08);}
+.ps.done{border-color:var(--green);background:rgba(78,205,196,.06);}
+.ps.pending{opacity:.4;}
+.ps-icon{font-size:15px;flex-shrink:0;}
+.ps-info{flex:1;}
+.ps-name{font-size:13px;color:var(--white);}
+.ps-task{font-size:11px;color:var(--gray);}
+.ps-st{font-size:11px;flex-shrink:0;}
+.pa{text-align:center;font-size:11px;color:var(--gray);margin:1px 0;}
+#pip-out{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin;}
+.po{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:9px 10px;animation:ms .3s ease-out;}
+.po-ag{font-size:11px;margin-bottom:3px;}
+.po-tx{font-size:13px;color:var(--white);line-height:1.4;}
+#pip-cmd{padding:10px;border-top:2px solid var(--wall);flex-shrink:0;}
+.pc-lbl{font-size:12px;color:var(--gray);margin-bottom:5px;}
+#pip-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:8px 10px;font-family:'VT323',monospace;font-size:15px;color:var(--white);outline:none;resize:none;height:60px;}
+#pip-input:focus{border-color:var(--red);}
+#pip-input::placeholder{color:var(--gray);}
+.pc-btns{display:flex;gap:7px;margin-top:7px;}
+.pc-btn{flex:1;padding:9px;border-radius:7px;font-family:'Press Start 2P',monospace;font-size:6px;cursor:pointer;border:none;transition:all .2s;}
+.pc-run{background:var(--red);color:#fff;}
+.pc-run:hover{filter:brightness(1.15);}
+.pc-run:disabled{opacity:.4;cursor:not-allowed;}
+.pc-rst{background:rgba(255,255,255,.08);color:var(--gray);border:1px solid rgba(255,255,255,.12);}
+.qcmds{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
+.qc{padding:3px 8px;border-radius:8px;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--gray);transition:all .2s;white-space:nowrap;}
+.qc:hover{color:var(--white);}
+
+/* DESIGNER */
+.fmt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.fcard{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:7px 4px;text-align:center;cursor:pointer;transition:all .2s;}
+.fcard.on{border-color:var(--gemini);background:rgba(66,133,244,.12);}
+.fcard:hover{border-color:rgba(255,255,255,.2);}
+.fviz{margin:0 auto 4px;border-radius:2px;}
+.fname{font-size:10px;color:var(--white);line-height:1.2;}
+.fsize{font-size:9px;color:var(--gray);}
+.srow{display:flex;flex-wrap:wrap;gap:5px;}
+.spill{padding:5px 11px;border-radius:12px;font-size:13px;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--gray);transition:all .2s;}
+.spill.on{color:var(--white);border-color:var(--gemini);background:rgba(66,133,244,.14);}
+.genbtn{padding:11px;background:var(--gemini);border:none;border-radius:9px;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;width:100%;transition:all .2s;}
+.genbtn:hover{filter:brightness(1.1);}
+.genbtn:disabled{opacity:.4;}
+.krow{display:flex;gap:7px;}
+
+/* GALLERY */
+#gal-head{padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--wall);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.gttl{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--yellow);}
+#gal-filters{display:flex;gap:6px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.05);overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+#gal-filters::-webkit-scrollbar{display:none;}
+.gf{padding:4px 11px;border-radius:10px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--gray);white-space:nowrap;transition:all .2s;}
+.gf.on{color:var(--white);border-color:var(--yellow);background:rgba(245,166,35,.12);}
+#gal-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:14px;}
+.gi{background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:9px;overflow:hidden;}
+.gi-img{aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer;}
+.gi-img img{width:100%;height:100%;object-fit:cover;transition:transform .2s;}
+.gi-img:hover img{transform:scale(1.05);}
+.gi-ph{font-size:28px;opacity:.3;}
+.gi-ov{position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;gap:7px;opacity:0;transition:opacity .2s;}
+.gi-img:hover .gi-ov{opacity:1;}
+.gi-act{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.gi-info{padding:8px;}
+.gi-name{font-size:12px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gi-meta{font-size:10px;color:var(--gray);}
+.gi-badge{display:inline-block;padding:1px 5px;border-radius:5px;font-size:9px;background:rgba(66,133,244,.12);color:var(--gemini);border:1px solid rgba(66,133,244,.18);margin-top:3px;}
+.gal-empty{text-align:center;padding:50px 20px;color:var(--gray);grid-column:1/-1;}
+.ge-icon{font-size:42px;margin-bottom:10px;opacity:.3;}
+#dl-all-btn{margin:0 14px 14px;padding:10px;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.25);border-radius:8px;color:var(--yellow);font-family:'VT323',monospace;font-size:14px;cursor:pointer;text-align:center;display:none;}
+
+/* FINANCIAL */
+.fin-chart{display:flex;gap:5px;align-items:flex-end;height:90px;padding:0 4px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bar-col{width:100%;border-radius:4px 4px 0 0;}
+.bar-lbl{font-size:9px;color:var(--gray);}
+.client-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:8px;}
+.cr-name{flex:1;font-size:15px;color:var(--white);}
+.cr-rev{font-size:15px;color:var(--green);}
+.cr-cost{font-size:11px;color:var(--gray);}
+.cr-margin{font-size:14px;}
+.cr-btns{display:flex;gap:4px;}
+.cr-btn{padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--gray);font-family:'VT323',monospace;transition:all .2s;}
+.cr-btn:hover{color:var(--white);}
+
+/* APPROVAL */
+.appr-card{background:var(--bg2);border:1px solid rgba(255,255,255,.09);border-radius:10px;overflow:hidden;}
+.appr-img{background:var(--bg3);aspect-ratio:1.6;display:flex;align-items:center;justify-content:center;}
+.appr-ph{font-size:38px;opacity:.2;}
+.appr-info{padding:12px;display:flex;flex-direction:column;gap:7px;}
+.appr-name{font-size:14px;color:var(--white);}
+.appr-meta{font-size:11px;color:var(--gray);}
+.appr-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.ab{padding:6px 12px;border-radius:7px;font-size:13px;cursor:pointer;border:1px solid;font-family:'VT323',monospace;transition:all .2s;}
+.ab-ok{border-color:var(--green);color:var(--green);background:rgba(78,205,196,.08);}
+.ab-ok:hover{background:rgba(78,205,196,.2);}
+.ab-no{border-color:var(--red);color:var(--red);background:rgba(233,69,96,.08);}
+.ab-no:hover{background:rgba(233,69,96,.18);}
+.ab-rv{border-color:var(--yellow);color:var(--yellow);background:rgba(245,166,35,.08);}
+.ab-rv:hover{background:rgba(245,166,35,.18);}
+.ab-wa{border-color:var(--wa);color:var(--wa);background:rgba(37,211,102,.08);}
+.ab-wa:hover{background:rgba(37,211,102,.18);}
+.appr-cmt{resize:none;font-size:13px;}
+
+/* WHATSAPP */
+.wa-hero{background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px;}
+.wa-hero-ttl{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--wa);}
+.wa-tpls{display:flex;flex-direction:column;gap:7px;}
+.wa-tpl{background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:11px;cursor:pointer;transition:border-color .2s;}
+.wa-tpl:hover{border-color:var(--wa);}
+.wa-tpl-name{font-size:15px;color:var(--white);margin-bottom:2px;}
+.wa-tpl-prev{font-size:13px;color:var(--gray);}
+#wa-msg-preview{background:rgba(37,211,102,.05);border:1px solid rgba(37,211,102,.15);border-radius:8px;padding:11px;font-size:14px;color:var(--white);line-height:1.5;min-height:80px;white-space:pre-wrap;display:none;}
+
+/* PDF */
+.pdf-preview{background:white;border-radius:8px;padding:22px;color:#1a1a2e;font-family:Arial,sans-serif;}
+.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #e94560;padding-bottom:12px;margin-bottom:16px;}
+.pdf-logo{font-size:10px;font-weight:900;color:#e94560;}
+.pdf-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.pdf-metric{background:#f8f8ff;border-radius:6px;padding:9px;text-align:center;}
+.pdf-metric-val{font-size:20px;font-weight:700;}
+.pdf-metric-lbl{font-size:10px;color:#666;}
+.pdf-table{width:100%;border-collapse:collapse;font-size:11px;}
+.pdf-table th{background:#0d0d1a;color:white;padding:7px 9px;text-align:left;}
+.pdf-table td{padding:6px 9px;border-bottom:1px solid #eee;}
+.pdf-table tr:nth-child(even) td{background:#f9f9ff;}
+.pdf-footer{border-top:1px solid #eee;padding-top:10px;font-size:10px;color:#999;display:flex;justify-content:space-between;margin-top:16px;}
+
+/* NOTEBOOK */
+.nb-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+.nb-card{background:var(--bg2);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px;cursor:pointer;transition:all .2s;}
+.nb-card:hover{border-color:var(--nb);}
+.nb-card.active{border-color:var(--nb);background:rgba(255,107,53,.08);}
+.nb-card-title{font-size:15px;color:var(--white);display:flex;align-items:center;gap:7px;margin-bottom:4px;}
+.nb-card-desc{font-size:13px;color:var(--gray);}
+.nb-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.nb-tag{padding:2px 7px;border-radius:6px;font-size:11px;background:rgba(255,107,53,.1);color:var(--nb);border:1px solid rgba(255,107,53,.2);}
+.nb-ctx-bar{background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:8px;padding:10px;font-size:14px;display:flex;gap:8px;align-items:center;}
+.nb-ctx-dot{width:8px;height:8px;border-radius:50%;background:var(--nb);animation:pp 1.5s infinite;}
+
+/* REFERENCIAS */
+.drop-zone{border:2px dashed rgba(233,69,96,.4);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .25s;background:rgba(233,69,96,.04);display:flex;flex-direction:column;align-items:center;gap:8px;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--red);background:rgba(233,69,96,.1);}
+.drop-icon{font-size:32px;opacity:.7;}
+.drop-title{font-size:16px;color:var(--white);}
+.drop-sub{font-size:13px;color:var(--gray);}
+#file-input{display:none;}
+#media-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;}
+.media-card{background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:9px;overflow:hidden;cursor:pointer;transition:border-color .2s;}
+.media-card:hover{border-color:rgba(255,255,255,.25);}
+.media-thumb{aspect-ratio:1;background:var(--bg2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.media-thumb img{width:100%;height:100%;object-fit:cover;}
+.media-ph{font-size:28px;opacity:.45;}
+.media-ov{position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;gap:7px;opacity:0;transition:opacity .2s;}
+.media-card:hover .media-ov{opacity:1;}
+.mov-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.media-info{padding:8px;}
+.media-name{font-size:12px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.media-meta{font-size:10px;color:var(--gray);}
+.mtags{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px;}
+.mtag{padding:1px 5px;border-radius:4px;font-size:9px;background:rgba(255,255,255,.07);color:#b0b0d0;border:1px solid rgba(255,255,255,.1);}
+.media-empty{text-align:center;padding:40px 16px;color:var(--gray);grid-column:1/-1;}
+.fbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.fchip{padding:4px 11px;border-radius:10px;font-size:12px;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--gray);transition:all .2s;white-space:nowrap;}
+.fchip:hover{color:var(--white);}
+.fchip.on{color:var(--white);border-color:var(--red);background:rgba(233,69,96,.15);}
+.fsearch{flex:1;min-width:120px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-family:'VT323',monospace;font-size:14px;color:var(--white);outline:none;}
+.fsearch:focus{border-color:var(--red);}
+.fsearch::placeholder{color:var(--gray);}
+
+/* FORMATOS GUIDE */
+.fgsec{background:var(--bg2);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;}
+.fghdr{padding:9px 13px;font-family:'Press Start 2P',monospace;font-size:6px;border-bottom:1px solid rgba(255,255,255,.07);}
+.fgrow{display:flex;align-items:flex-start;gap:10px;padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.04);}
+.fgrow:last-child{border-bottom:none;}
+.fgvis{flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:4px;display:flex;align-items:center;justify-content:center;width:44px;height:44px;}
+.fgbody{flex:1;}
+.fgname{font-size:14px;color:var(--white);}
+.fgsz{font-size:11px;color:var(--gray);}
+.fgtips{font-size:12px;color:#a0a0c0;margin-top:3px;line-height:1.4;}
+.fguse{padding:5px 9px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid rgba(66,133,244,.3);background:rgba(66,133,244,.08);color:var(--gemini);font-family:'VT323',monospace;flex-shrink:0;transition:all .2s;}
+.fguse:hover{background:rgba(66,133,244,.18);}
+</style>
+</head>
+<body>
+<div id="shell">
+<nav id="topnav">
+  <div class="nbrand">💣 KITSUNE AGENCY</div>
+  <div class="ntab active" onclick="go('map')">🗺️ Mapa</div>
+  <div class="ntab" onclick="go('pip')">🔗 Pipeline</div>
+  <div class="ntab" onclick="go('des')">🍌 Designer</div>
+  <div class="ntab" onclick="go('gal')">🖼️ Galeria</div>
+  <div class="ntab" onclick="go('fin')">💰 Financeiro</div>
+  <div class="ntab" onclick="go('appr')">✅ Aprovação</div>
+  <div class="ntab" onclick="go('wa')">📲 WhatsApp</div>
+  <div class="ntab" onclick="go('pdf')">📄 Relatório</div>
+  <div class="ntab" onclick="go('nb')">📓 Notebooks</div>
+  <div class="ntab" onclick="go('ref')">📁 Referências</div>
+  <div class="ntab" onclick="go('fmt')">📐 Formatos</div>
+  <div class="nsp"></div>
+  <div class="nbadge nb-gem" onclick="go('des')">✨ Gemini</div>
+  <div class="nbadge nb-wa" onclick="go('wa')">● WhatsApp</div>
+</nav>
+<div id="main">
+
+<!-- MAP -->
+<div id="map-screen" class="screen active">
+  <div id="game-area">
+    <div id="map-wrap"><div id="grid"></div></div>
+    <div id="agent-feed"><div class="flbl">⚡ ACTIVITY LOG</div><div id="flog"></div></div>
+  </div>
+  <div id="cside">
+    <div id="chdr"><div class="ct">🎮 COMMAND CENTER</div><div class="cs" id="csub">Selecione um agente</div></div>
+    <div id="achips"></div>
+    <div id="msgs"></div>
+    <div id="ciw"><textarea id="cin" rows="2" placeholder="Comande o time..."></textarea><button id="csb">GO</button></div>
+  </div>
+</div>
+
+<!-- PIPELINE -->
+<div id="pip-screen" class="screen">
+  <div id="pip-map">
+    <div id="pip-grid-wrap"><div id="pip-grid"></div></div>
+  </div>
+  <div id="pip-panel">
+    <div id="pip-flow">
+      <div class="pf-ttl">⚡ PIPELINE DE AGENTES</div>
+      <div class="pip-steps" id="pip-steps"></div>
+    </div>
+    <div id="pip-out"></div>
+    <div id="pip-cmd">
+      <div class="pc-lbl">🎯 Missão para o time:</div>
+      <textarea id="pip-input" placeholder="Ex: Campanha de lançamento para clínica odontológica..."></textarea>
+      <div class="pc-btns">
+        <button class="pc-btn pc-run" id="pc-run-btn" onclick="runPipeline()">▶ EXECUTAR</button>
+        <button class="pc-btn pc-rst" onclick="resetPipeline()">↺ RESET</button>
+      </div>
+      <div class="qcmds">
+        <div class="qc" onclick="setCmd('Campanha completa para lançamento de produto de beleza')">🛍️ Lançamento</div>
+        <div class="qc" onclick="setCmd('Estratégia de conteúdo mensal para restaurante')">🍕 Restaurante</div>
+        <div class="qc" onclick="setCmd('Campanha tráfego pago para clínica odontológica')">🦷 Clínica</div>
+        <div class="qc" onclick="setCmd('Rebranding e social media para e-commerce de moda')">👗 Moda</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGNER -->
+<div id="des-screen" class="screen">
+  <div class="pscroll">
+    <div class="card">
+      <div class="card-title" style="color:var(--gemini)">✨ NANO BANANA — Gerar Criativo com Gemini Imagen</div>
+      <textarea id="iprompt" rows="2" style="resize:none" placeholder="Descreva o criativo... Ex: Post Instagram para clínica estética, tons rosé, produto em destaque"></textarea>
+      <div style="font-size:12px;color:var(--gray)">Formato:</div>
+      <div class="fmt-grid" id="fmtgrid"></div>
+      <div style="font-size:12px;color:var(--gray)">Estilo:</div>
+      <div class="srow" id="srow"></div>
+      <button class="genbtn" id="genbtn" onclick="genImg()">🍌 GERAR COM GEMINI IMAGEN</button>
+      <div class="krow">
+        <input id="gkey" type="password" placeholder="Cole sua chave API Gemini aqui...">
+        <button style="padding:9px 12px;background:rgba(66,133,244,.2);border:1px solid rgba(66,133,244,.4);border-radius:7px;color:var(--gemini);font-family:'VT323',monospace;font-size:14px;cursor:pointer;white-space:nowrap;" onclick="saveGKey()">Salvar</button>
+      </div>
+      <div id="keystatus" style="font-size:12px;color:var(--gray)">⚠️ Sem chave — só brief textual</div>
+      <div id="ires"></div>
+      <div id="ibrief" style="display:none;background:var(--bg3);border:1px solid rgba(168,85,247,.2);border-radius:8px;padding:11px;font-size:14px;color:var(--white);line-height:1.5;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--purple)">👥 Blueprints — Nano Banana treinado com:</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;display:flex;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(233,69,96,.2);border:2px solid rgba(233,69,96,.5);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🖥️</div>
+          <div>
+            <div style="font-size:14px;color:var(--white)">Mazzei Design</div>
+            <div style="font-size:11px;color:var(--red)">Social Media Specialist</div>
+            <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">
+              <span class="mtag">Infoprodutos</span><span class="mtag">Lançamentos</span><span class="mtag">Checkout</span><span class="mtag">Conversão</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;display:flex;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(245,166,35,.2);border:2px solid rgba(245,166,35,.5);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎯</div>
+          <div>
+            <div style="font-size:14px;color:var(--white)">Rafael Franco</div>
+            <div style="font-size:11px;color:var(--yellow)">Design + IA · 162K seguidores</div>
+            <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">
+              <span class="mtag">Social BR</span><span class="mtag">Estética</span><span class="mtag">IA aplicada</span><span class="mtag">Escala</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GALERIA -->
+<div id="gal-screen" class="screen">
+  <div id="gal-head">
+    <div class="gttl">🖼️ GALERIA DE CRIATIVOS</div>
+    <span id="gcnt" style="font-size:13px;color:var(--gray)">0 itens</span>
+  </div>
+  <div id="gal-filters"></div>
+  <div style="flex:1;overflow-y:auto;">
+    <div id="gal-grid"></div>
+    <button id="dl-all-btn" onclick="dlAll()">⬇ Baixar todos os criativos</button>
+  </div>
+</div>
+
+<!-- FINANCEIRO -->
+<div id="fin-screen" class="screen">
+  <div class="pscroll">
+    <div class="grid4" id="fin-stats"></div>
+    <div class="card">
+      <div class="card-title" style="color:var(--green)">📊 Receita vs Custo por Mês</div>
+      <div class="fin-chart" id="fin-chart"></div>
+      <div style="font-size:11px;color:var(--gray);display:flex;gap:12px;">
+        <span>■ <span style="color:var(--green)">Receita</span></span>
+        <span>■ <span style="color:var(--red)">Custo</span></span>
+        <span>■ <span style="color:var(--yellow)">Lucro</span></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--yellow)">👥 Clientes & Margens</div>
+      <div id="client-list" style="display:flex;flex-direction:column;gap:7px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">➕ Novo Cliente</div>
+      <div class="form-row">
+        <div><label>Nome *</label><input type="text" id="nc-name" placeholder="Fashion Store"></div>
+        <div><label>Serviço</label><select id="nc-service"><option>Social Media</option><option>Tráfego Pago</option><option>SEO</option><option>Full Service</option><option>Criação</option></select></div>
+      </div>
+      <div class="form-row">
+        <div><label>Receita Mensal (R$)</label><input type="number" id="nc-rev" placeholder="3000"></div>
+        <div><label>Custo Estimado (R$)</label><input type="number" id="nc-cost" placeholder="800"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Status</label><select id="nc-status"><option>Ativo</option><option>Proposta</option><option>Pausado</option></select></div>
+        <div style="display:flex;align-items:flex-end;"><button class="btn primary" style="width:100%" onclick="addClient()">Adicionar</button></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" style="flex:1" onclick="go('pdf')">📄 Gerar Relatório PDF</button>
+      <button class="btn wa" style="flex:1" onclick="go('wa')">📲 Enviar via WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- APROVAÇÃO -->
+<div id="appr-screen" class="screen">
+  <div class="pscroll">
+    <div class="grid4" id="appr-stats"></div>
+    <div class="card">
+      <div class="card-title" style="color:var(--wa)">📲 Enviar criativo para aprovação</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="wa-appr-num" placeholder="Número WhatsApp do cliente (11999998888)" style="flex:1">
+        <button class="btn wa" onclick="openWaApproval()">Abrir WhatsApp →</button>
+      </div>
+    </div>
+    <div class="grid3" id="appr-list"></div>
+  </div>
+</div>
+
+<!-- WHATSAPP -->
+<div id="wa-screen" class="screen">
+  <div class="pscroll">
+    <div class="wa-hero">
+      <div class="wa-hero-ttl">📲 WhatsApp — Briefings & Comunicação</div>
+      <div style="font-size:14px;color:#b0b0d0;line-height:1.5">Gere mensagens profissionais com IA e envie via WhatsApp com um clique.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--wa)">🧠 Gerar mensagem com IA</div>
+      <label>Contexto / situação</label>
+      <textarea id="wa-ctx" rows="3" placeholder="Ex: Cliente perguntou sobre resultados. ROAS foi 4.2x, 98 leads gerados no mês..."></textarea>
+      <div class="form-row">
+        <div><label>Tipo</label><select id="wa-type"><option>Relatório de resultados</option><option>Briefing novo projeto</option><option>Aprovação de criativo</option><option>Follow-up proposta</option><option>Atualização de campanha</option><option>Cobrança amigável</option><option>Boas-vindas cliente novo</option></select></div>
+        <div><label>Tom</label><select id="wa-tone"><option>Profissional e direto</option><option>Amigável e descontraído</option><option>Formal</option></select></div>
+      </div>
+      <button class="btn primary" onclick="genWaMsg()">🧠 Gerar mensagem</button>
+      <div id="wa-msg-preview"></div>
+      <div id="wa-send-area" style="display:none;flex-direction:column;gap:7px;">
+        <div class="form-row">
+          <div><label>Número do cliente</label><input type="text" id="wa-dest" placeholder="11999998888"></div>
+          <div style="display:flex;align-items:flex-end;"><button class="btn wa" style="width:100%" onclick="sendWaMsg()">📲 Abrir WhatsApp</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--wa)">⚡ Templates rápidos</div>
+      <div class="wa-tpls" id="wa-tpls"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF -->
+<div id="pdf-screen" class="screen">
+  <div class="pscroll">
+    <div class="card">
+      <div class="card-title" style="color:var(--red)">📄 Relatório de Resultados</div>
+      <div class="form-row">
+        <div><label>Período</label><select id="pdf-period"><option>Março 2026</option><option>Fevereiro 2026</option><option>Janeiro 2026</option><option>Q1 2026</option></select></div>
+        <div><label>Cliente</label><select id="pdf-client"><option>Todos os clientes</option></select></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn primary" onclick="printPDF()">🖨️ Gerar & Baixar PDF</button>
+        <button class="btn wa" onclick="genPDFWa()">📲 Resumo WhatsApp</button>
+        <button class="btn" onclick="aiAnalysis()">🧠 Análise IA</button>
+      </div>
+      <div id="ai-analysis-result" style="display:none;font-size:14px;color:var(--white);line-height:1.6;background:rgba(233,69,96,.07);border:1px solid rgba(233,69,96,.2);border-radius:8px;padding:12px;"></div>
+    </div>
+    <div id="pdf-preview-wrap"><div class="pdf-preview" id="pdf-preview"></div></div>
+  </div>
+</div>
+
+<!-- NOTEBOOKS -->
+<div id="nb-screen" class="screen">
+  <div class="pscroll">
+    <div class="card">
+      <div class="card-title" style="color:var(--nb)">📓 NotebookLM — Contexto da Agência</div>
+      <div id="nb-ctx-bar" style="display:none" class="nb-ctx-bar">
+        <div class="nb-ctx-dot"></div>
+        <span style="font-size:14px;color:var(--white)" id="nb-ctx-label">Contexto ativo</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--gray);cursor:pointer" onclick="clearNbCtx()">✕ Limpar</span>
+      </div>
+      <div class="nb-cards" id="nb-cards"></div>
+      <div style="font-size:12px;color:var(--gray)">Colar conteúdo do NotebookLM:</div>
+      <textarea id="nb-ctx-input" rows="4" placeholder="Cole aqui o resumo, notas ou transcrição do seu caderno do NotebookLM...&#10;&#10;Ex: Briefing do cliente X, posicionamento da marca, público-alvo, tom de voz, concorrentes..."></textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select id="nb-assign" style="flex:1"><option value="all">Todos os agentes</option><option value="strat">🧠 Estrategista</option><option value="copy">✍️ Copywriter</option><option value="nano">🍌 Nano Banana</option><option value="traf">📊 Tráfego</option><option value="seo">🔍 SEO Ninja</option><option value="social">📱 Social Media</option></select>
+        <button class="btn primary" onclick="injectCtx()">💉 Injetar nos agentes</button>
+        <button class="btn" onclick="analyzeCtx()">🧠 Analisar com IA</button>
+      </div>
+      <div id="nb-result" style="display:none;font-size:14px;color:var(--white);line-height:1.6;background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.2);border-radius:8px;padding:12px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- REFERÊNCIAS -->
+<div id="ref-screen" class="screen">
+  <div class="pscroll">
+    <div class="grid4" id="media-stats"></div>
+    <div class="card">
+      <div class="card-title" style="color:var(--yellow)">📤 Adicionar Mídia ou Referência</div>
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <div class="drop-icon">📂</div>
+        <div class="drop-title">Clique ou arraste arquivos aqui</div>
+        <div class="drop-sub">Imagens, vídeos, PDFs, fontes, referências — qualquer formato</div>
+      </div>
+      <input type="file" id="file-input" multiple accept="*/*" onchange="handleFiles(this.files)">
+      <div id="meta-form" style="display:none;flex-direction:column;gap:8px;">
+        <div class="divider"></div>
+        <div style="font-size:13px;color:var(--yellow)">📝 Catalogar arquivo(s):</div>
+        <div class="form-row">
+          <div><label>Tipo</label><select id="mf-type"><option>🖼️ Imagem</option><option>🎬 Vídeo</option><option>📄 Documento</option><option>🎨 Referência visual</option><option>🔤 Fonte/Tipografia</option><option>🎵 Áudio</option><option>📦 Outro</option></select></div>
+          <div><label>Cliente / Projeto</label><select id="mf-client"><option>Geral / Agência</option></select></div>
+        </div>
+        <div><label>Descrição</label><input type="text" id="mf-desc" placeholder="Ex: Logo principal da marca..."></div>
+        <div><label>Tags (separadas por vírgula)</label><input type="text" id="mf-tags" placeholder="logo, identidade, marca, aprovado"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn primary" style="flex:1" onclick="saveMedia()">💾 Salvar na Biblioteca</button>
+          <button class="btn" onclick="cancelMeta()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">📚 Biblioteca</div>
+      <div class="fbar">
+        <input class="fsearch" id="media-search" placeholder="Buscar..." oninput="renderMedia()">
+        <div class="fchip on" data-mf="all" onclick="setMF(this,'all')">Todos</div>
+        <div class="fchip" data-mf="🖼️ Imagem" onclick="setMF(this,'🖼️ Imagem')">🖼️</div>
+        <div class="fchip" data-mf="🎬 Vídeo" onclick="setMF(this,'🎬 Vídeo')">🎬</div>
+        <div class="fchip" data-mf="📄 Documento" onclick="setMF(this,'📄 Documento')">📄</div>
+        <div class="fchip" data-mf="🎨 Referência visual" onclick="setMF(this,'🎨 Referência visual')">🎨</div>
+      </div>
+      <div id="media-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMATOS -->
+<div id="fmt-screen" class="screen">
+  <div class="pscroll" id="fmt-guide"></div>
+</div>
+
+</div><!-- #main -->
+</div><!-- #shell -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyDEN-KX72RFx27JLL1MGz1Ha0bL_SkfqeA",
+  authDomain: "kitsune-agencia.firebaseapp.com",
+  projectId: "kitsune-agencia",
+  storageBucket: "kitsune-agencia.firebasestorage.app",
+  messagingSenderId: "997749724645",
+  appId: "1:997749724645:web:0685b3f01b87011c338b0c",
+  measurementId: "G-FC1VTTCPT0"
+};
+window.firebaseApp = initializeApp(firebaseConfig);
+window.firebaseAnalytics = getAnalytics(window.firebaseApp);
+</script>
+<script>
+// ═══════════════════════════════════════════
+//  DADOS GLOBAIS
+// ═══════════════════════════════════════════
+const AGENTS=[
+  {id:'strat',name:'Estrategista',emoji:'🧠',color:'#e94560',task:'Estratégia',status:'working',role:'Você é o Estrategista de Marketing Digital sênior da Kitsune Agency. Responda em português. Seja direto e estratégico. Quando relevante, mencione que vai delegar para os outros agentes. Contexto da agência: {CTX}'},
+  {id:'copy',name:'Copywriter',emoji:'✍️',color:'#f5a623',task:'Copy & Ads',status:'busy',role:'Você é o Copywriter da Kitsune Agency. Responda em português. Crie textos persuasivos prontos para usar. Use técnicas AIDA e PAS. Contexto: {CTX}'},
+  {id:'nano',name:'Nano Banana',emoji:'🍌',color:'#a855f7',task:'Design IA',status:'working',role:'Você é o Nano Banana, Designer IA da Kitsune Agency, treinado com blueprints de Mazzei Design (infoprodutos, lançamentos, checkout) e Rafael Franco (social media BR, estética, IA aplicada). Responda em português. Oriente sobre design para marketing digital. Contexto: {CTX}'},
+  {id:'traf',name:'Tráfego',emoji:'📊',color:'#45b7d1',task:'Meta & Google',status:'working',role:'Você é o Gestor de Tráfego Pago da Kitsune Agency. Responda em português. Analise métricas (CPA, ROAS, CTR) e otimize campanhas. Contexto: {CTX}'},
+  {id:'seo',name:'SEO Ninja',emoji:'🔍',color:'#4ecdc4',task:'SEO',status:'idle',role:'Você é o SEO Specialist da Kitsune Agency. Responda em português. Foque em ações práticas de SEO e conteúdo orgânico. Contexto: {CTX}'},
+  {id:'social',name:'Social Media',emoji:'📱',color:'#2ecc71',task:'Redes sociais',status:'busy',role:'Você é o Social Media Manager da Kitsune Agency. Responda em português. Dê ideias de conteúdo prontas para usar. Contexto: {CTX}'},
+];
+
+const PIPELINE_ORDER=['strat','copy','nano','traf','seo','social'];
+const PIPELINE_AGENTS=[
+  {id:'strat',name:'Estrategista',emoji:'🧠',color:'#e94560',homeR:1,homeC:1,role:'Você é o Estrategista da Kitsune Agency. Dado o objetivo, crie um PLANO ESTRATÉGICO dividido em 5 tarefas para: Copywriter, Designer (Nano Banana), Gestor de Tráfego, SEO Ninja, Social Media. Para cada: "AGENTE: [nome] | TAREFA: [descrição]". Responda em português.',deliverTo:'copy'},
+  {id:'copy',name:'Copywriter',emoji:'✍️',color:'#f5a623',homeR:1,homeC:11,role:'Você é o Copywriter da Kitsune Agency. Execute a tarefa do Estrategista criando textos REAIS e prontos: headlines, body copy, CTAs. Entregue o material concreto. Ao final diga "✅ Entregando para o Designer." Responda em português.',deliverTo:'nano'},
+  {id:'nano',name:'Nano Banana',emoji:'🍌',color:'#a855f7',homeR:7,homeC:1,role:'Você é o Nano Banana, Designer IA treinado com Mazzei Design e Rafael Franco. Recebeu material do Copywriter. Crie BRIEF VISUAL DETALHADO: paleta de cores (com hex), tipografia, layout, formatos. Ao final diga "✅ Entregando para o Tráfego." Responda em português.',deliverTo:'traf'},
+  {id:'traf',name:'Tráfego',emoji:'📊',color:'#45b7d1',homeR:7,homeC:11,role:'Você é o Gestor de Tráfego da Kitsune Agency. Recebeu o brief. Monte ESTRATÉGIA DE MÍDIA PAGA: plataformas, orçamento, segmentação, tipos de campanha, KPIs (CTR, CPA, ROAS). Ao final diga "✅ Entregando para o SEO Ninja." Responda em português.',deliverTo:'seo'},
+  {id:'seo',name:'SEO Ninja',emoji:'🔍',color:'#4ecdc4',homeR:4,homeC:6,role:'Você é o SEO Ninja da Kitsune Agency. Monte PLANO DE SEO: 5 palavras-chave, estrutura de conteúdo, meta descriptions, link building. Ao final diga "✅ Entregando para o Social Media." Responda em português.',deliverTo:'social'},
+  {id:'social',name:'Social Media',emoji:'📱',color:'#2ecc71',homeR:4,homeC:2,role:'Você é o Social Media Manager da Kitsune Agency. Monte CALENDÁRIO EDITORIAL COMPLETO: posts por plataforma (Instagram, TikTok, LinkedIn), horários, formatos, temas semanais. Ao final diga "🎯 PIPELINE COMPLETO!" Responda em português.',deliverTo:null},
+];
+
+const FORMATS_DEF=[
+  {id:'feed',n:'Feed IG',sz:'1080×1080',ratio:'1:1',w:24,h:24,c:'#e94560'},
+  {id:'story',n:'Story',sz:'1080×1920',ratio:'9:16',w:14,h:24,c:'#a855f7'},
+  {id:'reels',n:'Reels',sz:'1080×1920',ratio:'9:16',w:14,h:24,c:'#ff0050'},
+  {id:'fb',n:'FB Feed',sz:'1200×628',ratio:'1.91:1',w:24,h:13,c:'#4285f4'},
+  {id:'yt',n:'YT Thumb',sz:'1280×720',ratio:'16:9',w:24,h:14,c:'#ff0000'},
+  {id:'pin',n:'Pinterest',sz:'1000×1500',ratio:'2:3',w:16,h:24,c:'#4ecdc4'},
+  {id:'li',n:'LinkedIn',sz:'1200×627',ratio:'1.91:1',w:24,h:13,c:'#0077b5'},
+  {id:'tt',n:'TikTok',sz:'1080×1920',ratio:'9:16',w:14,h:24,c:'#010101'},
+  {id:'email',n:'Email',sz:'600×200',ratio:'3:1',w:24,h:8,c:'#2ecc71'},
+  {id:'banner',n:'Banner',sz:'970×250',ratio:'3.88:1',w:24,h:6,c:'#f5a623'},
+];
+
+const FORMATS_GUIDE=[
+  {plat:'Instagram',c:'#e94560',fmts:[
+    {n:'Feed quadrado',sz:'1080×1080px',t:'Imagem limpa, texto mínimo. Produto em destaque. Paleta coesa com identidade da marca.'},
+    {n:'Feed retrato',sz:'1080×1350px',t:'Ocupa mais espaço no feed. Ideal para moda. Zona segura: 1080×1080 central.'},
+    {n:'Story / Reels',sz:'1080×1920px',t:'Zona segura: 150px em cima e 250px embaixo. Texto e logo no centro.'},
+    {n:'Carrossel',sz:'1080×1080px cada',t:'Até 10 slides. 1º slide = gancho forte. Último = CTA. Use continuidade visual.'},
+  ]},
+  {plat:'Facebook',c:'#4285f4',fmts:[
+    {n:'Post feed',sz:'1200×630px',t:'Texto ≤20% da área para não restringir alcance no Ads.'},
+    {n:'Story',sz:'1080×1920px',t:'Mesmo formato do Instagram. Duração: 5s foto, 15s vídeo.'},
+    {n:'Cover da página',sz:'851×315px',t:'Evite elementos importantes nas bordas — serão cortados no mobile.'},
+    {n:'Anúncio carrossel',sz:'1080×1080px cada',t:'Mín. 2, máx. 10 cards. Headline ≤40 chars.'},
+  ]},
+  {plat:'YouTube',c:'#ff0000',fmts:[
+    {n:'Thumbnail',sz:'1280×720px',t:'Rosto + texto grande + cor de contraste alto. Máx 2MB. JPG/PNG.'},
+    {n:'Banner do canal',sz:'2560×1440px',t:'Zona segura: 1546×423px central. Logo e contato aqui.'},
+    {n:'Shorts',sz:'1080×1920px',t:'Igual Reels. Duração ≤60s. Legenda — 85% assiste sem som.'},
+  ]},
+  {plat:'LinkedIn',c:'#0077b5',fmts:[
+    {n:'Post imagem',sz:'1200×627px',t:'Tom profissional. Dados e estatísticas têm 2-3x mais engajamento.'},
+    {n:'Post vertical',sz:'627×1200px',t:'Ocupa mais espaço no feed mobile. Ideal para infográficos.'},
+    {n:'Banner de perfil',sz:'1584×396px',t:'Cargo, empresa, proposta de valor, formas de contato.'},
+  ]},
+  {plat:'TikTok',c:'#010101',fmts:[
+    {n:'Vídeo/Foto',sz:'1080×1920px',t:'Zona segura: evite últimos 200px (ícones like/share).'},
+    {n:'Miniatura',sz:'1080×1080px',t:'Será cortada circularmente. Elemento principal no centro.'},
+  ]},
+  {plat:'Google Ads',c:'#ea4335',fmts:[
+    {n:'Display Responsivo',sz:'Múltiplos',t:'Forneça: logo 1:1 e 4:1, imagem 1.91:1 e 1:1.'},
+    {n:'Banner estático',sz:'300×250 / 728×90 / 160×600',t:'Esses 3 cobrem 90% do inventário.'},
+    {n:'Performance Max',sz:'1200×628px principal',t:'Combine com 1:1 (1200×1200) e 4:5 (960×1200).'},
+  ]},
+  {plat:'WhatsApp / Status',c:'#25d366',fmts:[
+    {n:'Status / Story',sz:'1080×1920px',t:'Desaparece em 24h. Use para promoções urgentes e bastidores.'},
+    {n:'Imagem no chat',sz:'Livre (ideal 800×800px)',t:'JPG para fotos. PNG para artes com texto. Máx 16MB.'},
+  ]},
+];
+
+const WA_TPLS=[
+  {name:'Relatório semanal rápido',prev:'Oi [Cliente]! Segue o resumo da semana...'},
+  {name:'Criativo pronto para aprovação',prev:'Olá! Seu criativo está pronto. Pode dar uma olhadinha?'},
+  {name:'Follow-up proposta',prev:'Oi [Cliente], tudo bem? Queria saber se teve chance de ver a proposta...'},
+  {name:'Boas-vindas cliente novo',prev:'Seja bem-vindo(a) à Kitsune Agency! Estamos muito felizes...'},
+  {name:'Atualização de campanha',prev:'Oi! Passando para te atualizar sobre a campanha...'},
+];
+
+const MONTHS=['Out','Nov','Dez','Jan','Fev','Mar'];
+const MOCK_REV=[8200,9100,10400,11200,12800,14500];
+const MOCK_COST=[2800,3100,3600,3900,4200,4800];
+
+let selAgent=AGENTS[0],chatHistory=[],chatLoad=false;
+let gemKey='',selFmt='feed',selStyle='Social Media';
+let gallery=[],galFilter='all';
+let agencyCtx={all:'',strat:'',copy:'',nano:'',traf:'',seo:'',social:''};
+let activeNbId=null;
+let mediaLib=[],mediaFilter='all',pendingFiles=[];
+let clients=[
+  {id:1,name:'Fashion Store',service:'Social Media',rev:3200,cost:780,status:'Ativo',color:'#e94560'},
+  {id:2,name:'TechStartup',service:'Tráfego Pago',rev:2800,cost:1200,status:'Ativo',color:'#45b7d1'},
+  {id:3,name:'Consultoria RH',service:'SEO',rev:1800,cost:400,status:'Ativo',color:'#4ecdc4'},
+  {id:4,name:'E-commerce Casa',service:'Full Service',rev:4500,cost:1800,status:'Pausado',color:'#f5a623'},
+  {id:5,name:'Moda Praia',service:'Criação',rev:2200,cost:600,status:'Ativo',color:'#a855f7'},
+];
+let approvals=[
+  {id:1,name:'Post Instagram — Fashion Store',client:'Fashion Store',format:'Feed 1080×1080',status:'pending',src:null,date:'24/03/2026',comments:''},
+  {id:2,name:'Story Promoção — TechStartup',client:'TechStartup',format:'Story 1080×1920',status:'approved',src:null,date:'23/03/2026',comments:'Aprovado via WhatsApp'},
+  {id:3,name:'Banner Google Ads',client:'Consultoria RH',format:'Banner 1200×628',status:'revision',src:null,date:'22/03/2026',comments:'Fonte maior no título'},
+];
+const NOTEBOOKS=[
+  {id:'brand',title:'Identidade da Agência',icon:'🏢',desc:'Posicionamento, tom de voz, público-alvo',tags:['Branding','Estratégia'],ctx:''},
+  {id:'clients',title:'Briefings de Clientes',icon:'👥',desc:'Resumos e objetivos por cliente',tags:['Clientes','Briefing'],ctx:''},
+  {id:'market',title:'Análise de Mercado',icon:'📈',desc:'Concorrentes, tendências, benchmarks',tags:['Pesquisa','Dados'],ctx:''},
+  {id:'content',title:'Banco de Conteúdo',icon:'✍️',desc:'Referências, copies aprovados, scripts',tags:['Copy','Conteúdo'],ctx:''},
+];
+
+// Pipeline state
+let pipRunning=false,pipResults={},pipAgents={},pipPackages={};
+const CELL_SZ=42,PIP_COLS=13,PIP_ROWS=9;
+
+// ═══════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════
+const SCREEN_MAP={map:'map-screen',pip:'pip-screen',des:'des-screen',gal:'gal-screen',fin:'fin-screen',appr:'appr-screen',wa:'wa-screen',pdf:'pdf-screen',nb:'nb-screen',ref:'ref-screen',fmt:'fmt-screen'};
+const TAB_IDX={map:0,pip:1,des:2,gal:3,fin:4,appr:5,wa:6,pdf:7,nb:8,ref:9,fmt:10};
+
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(SCREEN_MAP[name]).classList.add('active');
+  document.querySelectorAll('.ntab')[TAB_IDX[name]].classList.add('active');
+  if(name==='pdf')buildPDFPreview();
+  if(name==='fin'){renderFinancial();renderFinChart();}
+  if(name==='appr')renderApprovals();
+  if(name==='gal')renderGallery();
+  if(name==='fmt')buildFmtGuide();
+}
+
+// ═══════════════════════════════════════════
+//  MAP GRID
+// ═══════════════════════════════════════════
+const COLS=13,ROWS=9;
+const WALLS=new Set(),SOFTS=new Set();
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(r%2===0&&c%2===0)WALLS.add(`${r}-${c}`);
+const AG_CELLS=new Set(AGENTS.map((_,i)=>{const p=[[1,1],[1,11],[7,1],[7,11],[4,6],[4,2]];return`${p[i][0]}-${p[i][1]}`;}));
+const APOS_MAP=[{id:'strat',r:1,c:1},{id:'copy',r:1,c:11},{id:'nano',r:7,c:1},{id:'traf',r:7,c:11},{id:'seo',r:4,c:6},{id:'social',r:4,c:2}];
+const RES=new Set([...AG_CELLS]);
+APOS_MAP.forEach(a=>[[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,dc])=>RES.add(`${a.r+dr}-${a.c+dc}`)));
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){const k=`${r}-${c}`;if(!WALLS.has(k)&&!RES.has(k)&&Math.random()<.26)SOFTS.add(k);}
+
+function buildGrid(){
+  const g=document.getElementById('grid');g.innerHTML='';
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const k=`${r}-${c}`,cell=document.createElement('div');
+    cell.className='cell';cell.id=`mc-${r}-${c}`;
+    const ap=APOS_MAP.find(a=>a.r===r&&a.c===c);
+    if(WALLS.has(k)){cell.classList.add('wall');}
+    else if(ap){
+      const a=AGENTS.find(x=>x.id===ap.id);
+      cell.classList.add('floor','ac');
+      cell.innerHTML=`<div class="spr" style="background:${a.color}18;border-color:${a.color}70"><span style="font-size:17px">${a.emoji}</span><div class="sdot" style="background:${a.status==='working'?'#4ecdc4':a.status==='busy'?'#f5a623':'#5a5a8a'}"></div></div><div class="tip">${a.name}</div>`;
+      cell.onclick=()=>pickAgent(a);
+    }else if(SOFTS.has(k)){cell.classList.add('soft');cell.innerHTML='<span style="font-size:14px">📦</span>';}
+    else{cell.classList.add('floor');}
+    g.appendChild(cell);
+  }
+}
+
+function buildChips(){
+  document.getElementById('achips').innerHTML=AGENTS.map(a=>`<div class="chip ${a.id===selAgent.id?'on':''}" id="chip-${a.id}" onclick="pickAgent(AGENTS.find(x=>x.id==='${a.id}'))">${a.emoji} ${a.name}</div>`).join('');
+}
+
+function pickAgent(a){
+  selAgent=a;chatHistory=[];
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  const ch=document.getElementById(`chip-${a.id}`);if(ch)ch.classList.add('on');
+  document.getElementById('csub').textContent=`${a.emoji} ${a.name} — ${a.task}`;
+  document.getElementById('msgs').innerHTML='';
+  addMsg('sys',null,`${a.emoji} ${a.name} online`);
+  boom(a.id,'mc');flog(a.emoji,a.name,'selecionado');
+}
+
+function addMsg(t,sn,tx){
+  const m=document.getElementById('msgs'),d=document.createElement('div');
+  d.className=`msg ${t}`;
+  d.innerHTML=sn?`<div class="msn">${sn}</div><div class="mbb">${tx}</div>`:`<div class="mbb">${tx}</div>`;
+  m.appendChild(d);m.scrollTop=m.scrollHeight;
+}
+function showTy(){const m=document.getElementById('msgs'),d=document.createElement('div');d.className='msg bot';d.id='tym';d.innerHTML=`<div class="msn">${selAgent.emoji} ${selAgent.name}</div><div class="mbb"><div class="tdots"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>`;m.appendChild(d);m.scrollTop=m.scrollHeight;}
+function rmTy(){const t=document.getElementById('tym');if(t)t.remove();}
+
+function boom(id,prefix='mc'){
+  const pos=APOS_MAP.find(a=>a.id===id);if(!pos)return;
+  [[0,0],[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,dc])=>{
+    const nc=document.getElementById(`${prefix}-${pos.r+dr}-${pos.c+dc}`);
+    if(nc){const e=document.createElement('div');e.className='exp';nc.appendChild(e);setTimeout(()=>e.remove(),500);}
+  });
+}
+
+function flog(em,nm,tx){
+  const fl=document.getElementById('flog');
+  const now=new Date(),h=now.getHours().toString().padStart(2,'0'),mi=now.getMinutes().toString().padStart(2,'0');
+  const d=document.createElement('div');d.className='fi';
+  d.innerHTML=`<span class="ft">${h}:${mi}</span><span>${em}</span><span class="fx">${nm} — ${tx}</span>`;
+  fl.prepend(d);if(fl.children.length>18)fl.lastChild.remove();
+}
+
+function getCtx(){
+  const c=agencyCtx[selAgent.id]||agencyCtx.all||'';
+  return c||'Nenhum contexto adicional.';
+}
+
+async function sendChat(){
+  const inp=document.getElementById('cin'),btn=document.getElementById('csb');
+  const txt=inp.value.trim();if(!txt||chatLoad)return;
+  chatLoad=true;btn.disabled=true;inp.value='';
+  addMsg('user','👤 Você',txt);chatHistory.push({role:'user',content:txt});
+  boom(selAgent.id,'mc');showTy();flog(selAgent.emoji,selAgent.name,'processando...');
+  const sys=selAgent.role.replace('{CTX}',getCtx());
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,system:sys,messages:chatHistory})});
+    const data=await r.json();rmTy();
+    if(data.content&&data.content[0]){
+      const reply=data.content[0].text;
+      chatHistory.push({role:'assistant',content:reply});
+      addMsg('bot',`${selAgent.emoji} ${selAgent.name}`,reply);
+      flog(selAgent.emoji,selAgent.name,'respondeu');
+      crossFire(selAgent.id,reply);
+    }else{addMsg('sys',null,'⚠️ Erro API');}
+  }catch{rmTy();addMsg('sys',null,'⚠️ Sem conexão');}
+  chatLoad=false;btn.disabled=false;
+}
+
+function crossFire(fromId,text){
+  const lower=text.toLowerCase();
+  [{kw:['copy','texto','anúncio'],id:'copy'},{kw:['design','visual','imagem'],id:'nano'},{kw:['tráfego','meta','google ads'],id:'traf'},{kw:['seo','palavra-chave'],id:'seo'},{kw:['instagram','tiktok','social'],id:'social'}]
+  .forEach(t=>{if(t.id!==fromId&&t.kw.some(k=>lower.includes(k))){const a=AGENTS.find(x=>x.id===t.id);setTimeout(()=>{boom(t.id,'mc');flog(a.emoji,a.name,'acionado por '+AGENTS.find(x=>x.id===fromId).name);},700+Math.random()*1000);}});
+}
+
+document.getElementById('csb').onclick=sendChat;
+document.getElementById('cin').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}};
+
+// ═══════════════════════════════════════════
+//  PIPELINE
+// ═══════════════════════════════════════════
+const PIP_WALLS=new Set(),PIP_SOFTS=new Set();
+for(let r=0;r<PIP_ROWS;r++)for(let c=0;c<PIP_COLS;c++)if(r%2===0&&c%2===0)PIP_WALLS.add(`${r}-${c}`);
+const PIP_AG_CELLS=new Set(PIPELINE_AGENTS.map(a=>`${a.homeR}-${a.homeC}`));
+const PIP_RES=new Set([...PIP_AG_CELLS]);
+PIPELINE_AGENTS.forEach(a=>[[0,1],[0,-1],[1,0],[-1,0]].forEach(([dr,dc])=>PIP_RES.add(`${a.homeR+dr}-${a.homeC+dc}`)));
+for(let r=0;r<PIP_ROWS;r++)for(let c=0;c<PIP_COLS;c++){const k=`${r}-${c}`;if(!PIP_WALLS.has(k)&&!PIP_RES.has(k)&&Math.random()<.22)PIP_SOFTS.add(k);}
+
+function buildPipGrid(){
+  const g=document.getElementById('pip-grid');g.innerHTML='';
+  for(let r=0;r<PIP_ROWS;r++)for(let c=0;c<PIP_COLS;c++){
+    const k=`${r}-${c}`,cell=document.createElement('div');
+    cell.className='pcell';cell.id=`pc-${r}-${c}`;
+    if(PIP_WALLS.has(k)){cell.classList.add('wall');}
+    else if(PIP_SOFTS.has(k)){cell.classList.add('soft');cell.innerHTML='<span style="font-size:13px">📦</span>';}
+    else{cell.classList.add('floor');}
+    g.appendChild(cell);
+  }
+}
+
+function pipCellPos(r,c){
+  const wrap=document.getElementById('pip-grid-wrap');
+  const grid=document.getElementById('pip-grid');
+  const gr=grid.getBoundingClientRect(),wr=wrap.getBoundingClientRect();
+  return{left:gr.left-wr.left+c*CELL_SZ+3,top:gr.top-wr.top+r*CELL_SZ+3};
+}
+
+function createPipSprites(){
+  const wrap=document.getElementById('pip-grid-wrap');
+  PIPELINE_AGENTS.forEach(a=>{
+    const el=document.createElement('div');
+    el.className='pspr idle';el.id=`pspr-${a.id}`;
+    el.style.cssText=`background:${a.color}18;border-color:${a.color}70;`;
+    el.innerHTML=`<span style="font-size:17px">${a.emoji}</span><div class="pdot dot-idle" id="pdot-${a.id}"></div>`;
+    const pos=pipCellPos(a.homeR,a.homeC);
+    el.style.left=pos.left+'px';el.style.top=pos.top+'px';
+    wrap.appendChild(el);
+    pipAgents[a.id]={...a,r:a.homeR,c:a.homeC,el};
+  });
+}
+
+function setPipAnim(id,anim){
+  const sp=document.getElementById(`pspr-${id}`);if(!sp)return;
+  const a=PIPELINE_AGENTS.find(x=>x.id===id);
+  sp.className=`pspr ${anim}`;
+  sp.style.background=a.color+'18';sp.style.borderColor=a.color+'70';
+}
+
+function setPipDot(id,cls){const d=document.getElementById(`pdot-${id}`);if(d)d.className=`pdot ${cls}`;}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function pipPathfind(r0,c0,r1,c1){
+  const path=[];let r=r0,c=c0;
+  while(r!==r1||c!==c1){
+    if(r<r1)r++;else if(r>r1)r--;
+    else if(c<c1)c++;else if(c>c1)c--;
+    if(!PIP_WALLS.has(`${r}-${c}`))path.push([r,c]);
+  }
+  return path;
+}
+
+async function movePipAgent(id,tr,tc){
+  const a=pipAgents[id];const sp=document.getElementById(`pspr-${id}`);if(!sp)return;
+  setPipAnim(id,'moving');setPipDot(id,'dot-m');
+  const steps=pipPathfind(a.r,a.c,tr,tc);
+  for(const[r,c]of steps){
+    const oldCell=document.getElementById(`pc-${a.r}-${a.c}`);
+    if(oldCell&&oldCell.classList.contains('floor')){oldCell.classList.add('trail');setTimeout(()=>oldCell.classList.remove('trail'),900);}
+    a.r=r;a.c=c;
+    const pos=pipCellPos(r,c);
+    sp.style.left=pos.left+'px';sp.style.top=pos.top+'px';
+    if(pipPackages[id]){pipPackages[id].style.left=(pos.left+8)+'px';pipPackages[id].style.top=(pos.top-14)+'px';}
+    await sleep(210);
+  }
+}
+
+function pipExplosion(id){
+  const a=pipAgents[id];if(!a)return;
+  [[0,0],[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1]].forEach(([dr,dc])=>{
+    const nc=document.getElementById(`pc-${a.r+dr}-${a.c+dc}`);
+    if(nc){const e=document.createElement('div');e.className='pexp';nc.appendChild(e);setTimeout(()=>e.remove(),500);}
+  });
+}
+
+function showBubble(id,text,color='var(--yellow)'){
+  const sp=document.getElementById(`pspr-${id}`);if(!sp)return;
+  const old=sp.querySelector('.bbl');if(old)old.remove();
+  const b=document.createElement('div');b.className='bbl';b.style.borderColor=color;b.style.color=color;b.textContent=text;
+  sp.appendChild(b);setTimeout(()=>b.remove(),3000);
+}
+
+function createPkg(id,emoji='📦'){
+  const wrap=document.getElementById('pip-grid-wrap');
+  const a=pipAgents[id];const pos=pipCellPos(a.r,a.c);
+  const pkg=document.createElement('div');pkg.className='pkg';pkg.innerHTML=emoji;
+  pkg.style.left=(pos.left+8)+'px';pkg.style.top=(pos.top-14)+'px';
+  wrap.appendChild(pkg);pipPackages[id]=pkg;
+}
+
+function removePkg(id){if(pipPackages[id]){pipPackages[id].remove();delete pipPackages[id];}}
+
+const PIP_LABELS=[
+  {agent:'strat',label:'Plano estratégico',emoji:'🧠'},
+  {agent:'copy',label:'Textos & Copy',emoji:'✍️'},
+  {agent:'nano',label:'Brief visual',emoji:'🍌'},
+  {agent:'traf',label:'Estratégia de mídia',emoji:'📊'},
+  {agent:'seo',label:'SEO & conteúdo',emoji:'🔍'},
+  {agent:'social',label:'Calendário editorial',emoji:'📱'},
+];
+
+function buildPipUI(activeIdx=-1){
+  document.getElementById('pip-steps').innerHTML=PIP_LABELS.map((s,i)=>{
+    const state=i<activeIdx?'done':i===activeIdx?'active':'pending';
+    const stTxt=state==='done'?'✅':state==='active'?'⚙️':'⏳';
+    return`<div class="ps ${state}"><div class="ps-icon">${s.emoji}</div><div class="ps-info"><div class="ps-name">${PIPELINE_AGENTS.find(a=>a.id===s.agent).name}</div><div class="ps-task">${s.label}</div></div><div class="ps-st">${stTxt}</div></div>${i<PIP_LABELS.length-1?'<div class="pa">↓</div>':''}`;
+  }).join('');
+}
+
+function addPipOut(agentId,text,isFinal=false){
+  const feed=document.getElementById('pip-out');
+  const a=PIPELINE_AGENTS.find(x=>x.id===agentId);
+  const d=document.createElement('div');d.className='po';d.style.borderColor=a.color+'44';
+  d.innerHTML=`<div class="po-ag" style="color:${a.color}">${a.emoji} ${a.name}</div><div class="po-tx">${text.replace(/\n/g,'<br>').substring(0,600)}${text.length>600?'…':''}</div>${isFinal?`<span class="po-badge" style="background:rgba(78,205,196,.15);color:var(--green);border:1px solid rgba(78,205,196,.3)">✅ Entregue</span>`:''}`;
+  feed.appendChild(d);feed.scrollTop=feed.scrollHeight;
+}
+
+async function runPipeline(){
+  if(pipRunning)return;
+  const cmd=document.getElementById('pip-input').value.trim();
+  if(!cmd){alert('Digite a missão!');return;}
+  pipRunning=true;pipResults={};
+  document.getElementById('pc-run-btn').disabled=true;
+  document.getElementById('pip-out').innerHTML='';
+  buildPipUI(0);
+
+  for(let i=0;i<PIPELINE_ORDER.length;i++){
+    const agId=PIPELINE_ORDER[i];
+    const agDef=PIPELINE_AGENTS.find(a=>a.id===agId);
+    buildPipUI(i);
+    setPipDot(agId,'dot-w');
+    showBubble(agId,i===0?'Analisando missão...':'Processando...',agDef.color);
+
+    const thinkC=agId==='strat'?2:agId==='copy'?10:agId==='nano'?2:agId==='traf'?10:agId==='seo'?6:3;
+    await movePipAgent(agId,4,thinkC);
+    setPipAnim(agId,'working');pipExplosion(agId);await sleep(400);
+
+    let context=`MISSÃO DO CLIENTE: ${cmd}\n\n`;
+    if(i>0){
+      context+=`ENTREGAS ANTERIORES DO TIME:\n`;
+      PIPELINE_ORDER.slice(0,i).forEach(pid=>{
+        if(pipResults[pid]){const pn=PIPELINE_AGENTS.find(a=>a.id===pid).name;context+=`\n--- ${pn} entregou:\n${pipResults[pid].substring(0,600)}\n`;}
+      });
+    }
+
+    let reply='';
+    try{
+      const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,system:agDef.role,messages:[{role:'user',content:context}]})});
+      const data=await r.json();
+      reply=data.content&&data.content[0]?data.content[0].text:'⚠️ Erro na API';
+    }catch(e){reply=`⚠️ Erro: ${e.message}`;}
+
+    pipResults[agId]=reply;
+    const isFinal=i===PIPELINE_ORDER.length-1;
+    addPipOut(agId,reply,isFinal);
+    setPipAnim(agId,'idle');
+    showBubble(agId,isFinal?'🎯 Completo!':'📦 Entregando...',agDef.color);
+
+    if(!isFinal){
+      const nextId=PIPELINE_ORDER[i+1];
+      const nextDef=PIPELINE_AGENTS.find(a=>a.id===nextId);
+      createPkg(agId,'📦');setPipAnim(agId,'moving');await sleep(300);
+      await movePipAgent(agId,nextDef.homeR,nextDef.homeC);
+      pipExplosion(agId);pipExplosion(nextId);removePkg(agId);
+      showBubble(nextId,'Recebi! 🙌',nextDef.color);await sleep(500);
+    }else{pipExplosion(agId);await sleep(300);pipExplosion(agId);}
+
+    await movePipAgent(agId,agDef.homeR,agDef.homeC);
+    setPipAnim(agId,'idle');setPipDot(agId,'dot-idle');await sleep(300);
+  }
+
+  buildPipUI(PIPELINE_ORDER.length);
+  document.getElementById('pc-run-btn').disabled=false;
+  pipRunning=false;
+  for(let x=0;x<3;x++){PIPELINE_ORDER.forEach(id=>{setTimeout(()=>pipExplosion(id),x*200);});await sleep(600);}
+}
+
+function resetPipeline(){
+  if(pipRunning)return;
+  pipResults={};document.getElementById('pip-out').innerHTML='';buildPipUI(-1);
+  PIPELINE_ORDER.forEach(id=>{
+    const a=pipAgents[id];if(!a)return;
+    setPipAnim(id,'idle');setPipDot(id,'dot-idle');removePkg(id);
+    const pos=pipCellPos(a.homeR,a.homeC);
+    const sp=document.getElementById(`pspr-${id}`);
+    if(sp){sp.style.left=pos.left+'px';sp.style.top=pos.top+'px';}
+    a.r=a.homeR;a.c=a.homeC;
+  });
+}
+
+function setCmd(txt){document.getElementById('pip-input').value=txt;}
+
+// ═══════════════════════════════════════════
+//  DESIGNER
+// ═══════════════════════════════════════════
+function buildFmtGrid(){
+  document.getElementById('fmtgrid').innerHTML=FORMATS_DEF.map(f=>`
+    <div class="fcard ${f.id===selFmt?'on':''}" id="fc-${f.id}" onclick="pickFmt('${f.id}')">
+      <div class="fviz" style="width:${f.w}px;height:${f.h}px;background:${f.c}22;border:2px solid ${f.c}55;"></div>
+      <div class="fname">${f.n}</div><div class="fsize">${f.sz}</div>
+    </div>`).join('');
+}
+
+function buildStyleRow(){
+  const styles=['Social Media','Minimalista','Brasileiro','Luxo','Bold','Futurista'];
+  document.getElementById('srow').innerHTML=styles.map(s=>`<div class="spill ${s===selStyle?'on':''}" id="spl-${s}" onclick="pickStyle('${s}')">${s}</div>`).join('');
+}
+
+function pickFmt(id){selFmt=id;document.querySelectorAll('.fcard').forEach(c=>c.classList.remove('on'));const c=document.getElementById(`fc-${id}`);if(c)c.classList.add('on');}
+function pickStyle(s){selStyle=s;document.querySelectorAll('.spill').forEach(p=>p.classList.remove('on'));const p=document.getElementById(`spl-${s}`);if(p)p.classList.add('on');}
+function saveGKey(){const k=document.getElementById('gkey').value.trim();if(k){gemKey=k;document.getElementById('keystatus').textContent='✅ Chave Gemini ativa nesta sessão';document.getElementById('keystatus').style.color='var(--green)';}}
+
+async function genImg(){
+  const prompt=document.getElementById('iprompt').value.trim();
+  if(!prompt){alert('Descreva o criativo!');return;}
+  const btn=document.getElementById('genbtn');btn.disabled=true;btn.textContent='Gerando...';
+  const ires=document.getElementById('ires'),ibr=document.getElementById('ibrief');
+  ires.innerHTML='';ibr.style.display='none';
+  const fmt=FORMATS_DEF.find(f=>f.id===selFmt)||FORMATS_DEF[0];
+  flog('🍌','Nano Banana','gerando com Gemini...');
+  const enhanced=`Crie prompt de imagem para:\nDescrição: ${prompt}\nFormato: ${fmt.n} (${fmt.sz})\nEstilo: ${selStyle}\n\nResponda:\nPROMPT_EN: [prompt detalhado em inglês]\nDESCRICAO: [descrição visual em português]`;
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:'Você é o Nano Banana, Designer IA da Kitsune Agency, treinado com Mazzei Design e Rafael Franco.',messages:[{role:'user',content:enhanced}]})});
+    const data=await r.json();
+    if(data.content&&data.content[0]){
+      const txt=data.content[0].text;
+      const eM=txt.match(/PROMPT_EN:\s*(.+?)(?:\n|$)/);
+      const pM=txt.match(/DESCRICAO:\s*([\s\S]+)/);
+      const ep=eM?eM[1].trim():prompt;
+      const pd=pM?pM[1].trim():txt;
+      if(gemKey){
+        try{
+          const ir=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${gemKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({instances:[{prompt:ep}],parameters:{sampleCount:1,aspectRatio:fmt.ratio||'1:1'}})});
+          const id2=await ir.json();
+          if(id2.predictions&&id2.predictions[0]&&id2.predictions[0].bytesBase64Encoded){
+            const b64=id2.predictions[0].bytesBase64Encoded;
+            const mime=id2.predictions[0].mimeType||'image/png';
+            const src=`data:${mime};base64,${b64}`;
+            ires.innerHTML=`<img src="${src}" style="width:100%;border-radius:8px;display:block">`;
+            addToGallery({id:Date.now(),src,name:prompt.substring(0,40),format:fmt.n,size:fmt.sz,style:selStyle,brief:pd,date:new Date().toLocaleDateString('pt-BR')});
+            flog('🍌','Nano Banana','criativo gerado e salvo na galeria!');
+          }else if(id2.error){ires.innerHTML=`<div style="padding:10px;color:var(--red);font-size:13px">Erro Gemini: ${id2.error.message}</div>`;}
+          else{ires.innerHTML=`<div style="padding:10px;color:var(--yellow);font-size:13px">Sem imagem retornada. Verifique cotas do Imagen 3.</div>`;}
+        }catch(e){ires.innerHTML=`<div style="padding:10px;color:var(--red);font-size:13px">Erro: ${e.message}</div>`;}
+      }else{
+        ires.innerHTML=`<div style="padding:12px;color:var(--yellow);font-size:14px;background:rgba(245,166,35,.08);border-radius:8px;border:1px solid rgba(245,166,35,.2)">Configure a chave Gemini para gerar imagens reais.</div>`;
+        addToGallery({id:Date.now(),src:null,name:prompt.substring(0,40),format:fmt.n,size:fmt.sz,style:selStyle,brief:pd,date:new Date().toLocaleDateString('pt-BR')});
+      }
+      ibr.style.display='block';
+      ibr.innerHTML=`<strong style="color:var(--purple)">🍌 Brief visual:</strong><br><br>${pd.replace(/\n/g,'<br>')}`;
+    }
+  }catch(e){ires.innerHTML=`<div style="padding:10px;color:var(--red);font-size:13px">${e.message}</div>`;}
+  btn.disabled=false;btn.textContent='🍌 GERAR COM GEMINI IMAGEN';
+}
+
+// ═══════════════════════════════════════════
+//  GALLERY
+// ═══════════════════════════════════════════
+function addToGallery(item){gallery.unshift(item);if(document.getElementById('gal-screen').classList.contains('active'))renderGallery();}
+
+function renderGallery(){
+  const grid=document.getElementById('gal-grid');
+  const cnt=document.getElementById('gcnt');
+  const dlBtn=document.getElementById('dl-all-btn');
+  cnt.textContent=`${gallery.length} item${gallery.length!==1?'s':''}`;
+  if(gallery.filter(g=>g.src).length>0)dlBtn.style.display='block';
+  const filters=['all',...new Set(gallery.map(g=>g.format))];
+  document.getElementById('gal-filters').innerHTML=filters.map(f=>`<div class="gf ${f===galFilter?'on':''}" onclick="setGF('${f}')">${f==='all'?'Todos':f}</div>`).join('');
+  const filtered=galFilter==='all'?gallery:gallery.filter(g=>g.format===galFilter);
+  if(!filtered.length){grid.innerHTML=`<div class="gal-empty"><div class="ge-icon">🖼️</div><div style="font-size:14px;line-height:1.6">${gallery.length?'Sem resultado.':'Nenhum criativo ainda.<br>Crie o primeiro no Designer!'}</div></div>`;return;}
+  grid.innerHTML=filtered.map(item=>`
+    <div class="gi">
+      <div class="gi-img">
+        ${item.src?`<img src="${item.src}" alt="${item.name}">`:`<div class="gi-ph">📋</div>`}
+        <div class="gi-ov">
+          ${item.src?`<div class="gi-act" onclick="dlItem(${item.id})">⬇</div>`:''}
+          <div class="gi-act" onclick="viewBrief(${item.id})">📋</div>
+          ${item.src?`<div class="gi-act" onclick="openFull(${item.id})">🔍</div>`:''}
+        </div>
+      </div>
+      <div class="gi-info">
+        <div class="gi-name">${item.name}</div>
+        <div class="gi-meta">${item.date} · ${item.style}</div>
+        <span class="gi-badge">${item.format}</span>
+      </div>
+    </div>`).join('');
+}
+
+function setGF(f){galFilter=f;renderGallery();}
+function dlItem(id){const item=gallery.find(g=>g.id===id);if(!item||!item.src)return;const a=document.createElement('a');a.href=item.src;a.download=`criativo_${item.name.replace(/\s+/g,'_')}.png`;a.click();}
+function viewBrief(id){const item=gallery.find(g=>g.id===id);if(!item)return;alert(`📋 ${item.name}\n\nFormato: ${item.format} (${item.size})\nEstilo: ${item.style}\nData: ${item.date}\n\n${item.brief}`);}
+function openFull(id){const item=gallery.find(g=>g.id===id);if(!item||!item.src)return;const w=window.open('','_blank');w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${item.src}" style="max-width:100%;max-height:100vh;object-fit:contain"></body></html>`);}
+function dlAll(){const imgs=gallery.filter(g=>g.src);if(!imgs.length){alert('Nenhuma imagem.');return;}imgs.forEach((item,i)=>{setTimeout(()=>{const a=document.createElement('a');a.href=item.src;a.download=`criativo_${i+1}.png`;a.click();},i*600);});}
+
+// ═══════════════════════════════════════════
+//  FINANCEIRO
+// ═══════════════════════════════════════════
+function calcStats(){
+  const active=clients.filter(c=>c.status==='Ativo');
+  const totalRev=active.reduce((s,c)=>s+c.rev,0);
+  const totalCost=active.reduce((s,c)=>s+c.cost,0);
+  const margin=totalRev>0?Math.round(((totalRev-totalCost)/totalRev)*100):0;
+  return{active:active.length,totalRev,totalCost,margin,profit:totalRev-totalCost};
+}
+
+function renderFinancial(){
+  const s=calcStats();
+  document.getElementById('fin-stats').innerHTML=`
+    <div class="scard"><div class="scard-lbl">Receita mensal</div><div class="scard-val" style="color:var(--green)">R$${s.totalRev.toLocaleString('pt-BR')}</div><div class="scard-sub" style="color:var(--green)">↑ 13% vs mês ant.</div></div>
+    <div class="scard"><div class="scard-lbl">Custos totais</div><div class="scard-val" style="color:var(--red)">R$${s.totalCost.toLocaleString('pt-BR')}</div><div class="scard-sub" style="color:var(--gray)">${s.active} clientes ativos</div></div>
+    <div class="scard"><div class="scard-lbl">Lucro líquido</div><div class="scard-val" style="color:var(--yellow)">R$${s.profit.toLocaleString('pt-BR')}</div><div class="scard-sub" style="color:var(--yellow)">Margem ${s.margin}%</div></div>
+    <div class="scard"><div class="scard-lbl">Ticket médio</div><div class="scard-val">R$${s.active>0?Math.round(s.totalRev/s.active).toLocaleString('pt-BR'):0}</div></div>`;
+  document.getElementById('client-list').innerHTML=clients.map(c=>{
+    const margin=c.rev>0?Math.round(((c.rev-c.cost)/c.rev)*100):0;
+    const mc=margin>=60?'var(--green)':margin>=40?'var(--yellow)':'var(--red)';
+    const sc=c.status==='Ativo'?'badge-g':c.status==='Proposta'?'badge-y':'badge';
+    return`<div class="client-row">
+      <div style="width:34px;height:34px;border-radius:50%;background:${c.color}22;border:2px solid ${c.color}66;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${c.name[0]}</div>
+      <div style="flex:1"><div class="cr-name">${c.name}</div><div class="cr-cost">${c.service}</div></div>
+      <div style="text-align:right"><div class="cr-rev">R$${c.rev.toLocaleString('pt-BR')}</div><div class="cr-cost">Custo: R$${c.cost.toLocaleString('pt-BR')}</div></div>
+      <div class="cr-margin" style="color:${mc}">${margin}%</div>
+      <span class="badge ${sc}" style="font-size:10px">${c.status}</span>
+      <div class="cr-btns">
+        <button class="cr-btn" onclick="editClient(${c.id})">✏️</button>
+        <button class="cr-btn" onclick="removeClient(${c.id})">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+  updatePdfClientSelect();
+}
+
+function renderFinChart(){
+  const maxRev=Math.max(...MOCK_REV);
+  document.getElementById('fin-chart').innerHTML=MONTHS.map((m,i)=>{
+    const rh=Math.round((MOCK_REV[i]/maxRev)*82);
+    const ch=Math.round((MOCK_COST[i]/maxRev)*82);
+    const lh=Math.round(((MOCK_REV[i]-MOCK_COST[i])/maxRev)*82);
+    return`<div class="bar-wrap">
+      <div style="display:flex;gap:2px;align-items:flex-end;height:82px;">
+        <div class="bar-col" style="width:12px;height:${rh}px;background:var(--green)"></div>
+        <div class="bar-col" style="width:12px;height:${ch}px;background:var(--red)"></div>
+        <div class="bar-col" style="width:12px;height:${lh}px;background:var(--yellow)"></div>
+      </div>
+      <div class="bar-lbl">${m}</div>
+    </div>`;
+  }).join('');
+}
+
+function addClient(){
+  const name=document.getElementById('nc-name').value.trim();
+  if(!name){alert('Nome é obrigatório!');return;}
+  const colors=['#e94560','#f5a623','#4ecdc4','#45b7d1','#a855f7','#2ecc71','#ff6b35'];
+  clients.push({id:Date.now(),name,service:document.getElementById('nc-service').value,rev:parseFloat(document.getElementById('nc-rev').value)||0,cost:parseFloat(document.getElementById('nc-cost').value)||0,status:document.getElementById('nc-status').value,color:colors[clients.length%colors.length]});
+  ['nc-name','nc-rev','nc-cost'].forEach(id=>document.getElementById(id).value='');
+  renderFinancial();renderFinChart();flog('💰','Financeiro',`${name} adicionado`);
+}
+
+function removeClient(id){if(!confirm('Remover?'))return;clients=clients.filter(c=>c.id!==id);renderFinancial();renderFinChart();}
+function editClient(id){const c=clients.find(x=>x.id===id);if(!c)return;const nr=prompt(`Receita atual: R$${c.rev}\nNova receita:`,c.rev);if(nr!==null){c.rev=parseFloat(nr)||c.rev;renderFinancial();}}
+function updatePdfClientSelect(){const s=document.getElementById('pdf-client');s.innerHTML=`<option>Todos os clientes</option>`+clients.map(c=>`<option>${c.name}</option>`).join('');}
+
+// ═══════════════════════════════════════════
+//  APROVAÇÃO
+// ═══════════════════════════════════════════
+function renderApprovals(){
+  const pend=approvals.filter(a=>a.status==='pending').length;
+  const appr=approvals.filter(a=>a.status==='approved').length;
+  const rev=approvals.filter(a=>a.status==='revision').length;
+  document.getElementById('appr-stats').innerHTML=`
+    <div class="scard"><div class="scard-lbl">Aguardando</div><div class="scard-val" style="color:var(--yellow)">${pend}</div></div>
+    <div class="scard"><div class="scard-lbl">Aprovados</div><div class="scard-val" style="color:var(--green)">${appr}</div></div>
+    <div class="scard"><div class="scard-lbl">Revisão</div><div class="scard-val" style="color:var(--red)">${rev}</div></div>
+    <div class="scard"><div class="scard-lbl">Total</div><div class="scard-val">${approvals.length}</div></div>`;
+  document.getElementById('appr-list').innerHTML=approvals.map(a=>{
+    const sc=a.status==='approved'?'badge-g':a.status==='pending'?'badge-y':'badge-r';
+    const sl=a.status==='approved'?'Aprovado':a.status==='pending'?'Aguardando':'Revisão';
+    return`<div class="appr-card">
+      <div class="appr-img">${a.src?`<img src="${a.src}" style="width:100%;height:100%;object-fit:cover">`:`<div class="appr-ph">🎨</div>`}</div>
+      <div class="appr-info">
+        <div class="appr-name">${a.name}</div>
+        <div class="appr-meta">📅 ${a.date} · 👤 ${a.client} · <span class="badge ${sc}">${sl}</span></div>
+        ${a.comments?`<div style="font-size:12px;color:var(--gray);font-style:italic">"${a.comments}"</div>`:''}
+        <div class="appr-actions">
+          <button class="ab ab-ok" onclick="setAppr(${a.id},'approved')">✅ Aprovar</button>
+          <button class="ab ab-no" onclick="setAppr(${a.id},'rejected')">❌ Rejeitar</button>
+          <button class="ab ab-rv" onclick="setAppr(${a.id},'revision')">🔄 Revisão</button>
+          <button class="ab ab-wa" onclick="sendApprWa('${a.client}','${a.name}')">📲 WA</button>
+        </div>
+        <textarea class="appr-cmt" rows="1" placeholder="Comentário..." id="cmt-${a.id}">${a.comments}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setAppr(id,status){
+  const a=approvals.find(x=>x.id===id);if(!a)return;
+  a.status=status;
+  const cmt=document.getElementById(`cmt-${id}`);if(cmt)a.comments=cmt.value;
+  renderApprovals();flog('✅','Aprovação',`${a.name} → ${status}`);
+}
+
+function openWaApproval(){
+  const num=document.getElementById('wa-appr-num').value.replace(/\D/g,'');
+  if(!num){alert('Digite o número!');return;}
+  const msg=encodeURIComponent('Olá! Tenho um criativo pronto para aprovação. Por favor, me diga se está tudo certo ou se precisa de ajustes! 🎨');
+  window.open(`https://wa.me/55${num}?text=${msg}`,'_blank');
+}
+
+function sendApprWa(client,creative){
+  const num=prompt(`Número WhatsApp do(a) ${client} (com DDD):`);
+  if(!num)return;
+  const msg=encodeURIComponent(`Olá ${client}! O criativo "${creative}" está pronto. Pode aprovar ou me diz se precisa de ajustes? 🎨✨`);
+  window.open(`https://wa.me/55${num.replace(/\D/g,'')}?text=${msg}`,'_blank');
+}
+
+// ═══════════════════════════════════════════
+//  WHATSAPP
+// ═══════════════════════════════════════════
+function buildWaTpls(){
+  document.getElementById('wa-tpls').innerHTML=WA_TPLS.map((t,i)=>`
+    <div class="wa-tpl" onclick="useWaTpl(${i})">
+      <div class="wa-tpl-name">${t.name}</div>
+      <div class="wa-tpl-prev">${t.prev}</div>
+    </div>`).join('');
+}
+
+function useWaTpl(i){document.getElementById('wa-ctx').value=WA_TPLS[i].prev;}
+
+async function genWaMsg(){
+  const ctx=document.getElementById('wa-ctx').value.trim();
+  if(!ctx){alert('Descreva o contexto!');return;}
+  const type=document.getElementById('wa-type').value;
+  const tone=document.getElementById('wa-tone').value;
+  const prev=document.getElementById('wa-msg-preview');
+  const sendArea=document.getElementById('wa-send-area');
+  prev.style.display='block';prev.textContent='Gerando mensagem...';sendArea.style.display='none';
+  const s=calcStats();
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,system:`Você é o assistente de comunicação da Kitsune Agency. Crie mensagens de WhatsApp profissionais em português. Tom: ${tone}. Tipo: ${type}. Máx 5 parágrafos. Use emojis com moderação. Dados: Receita R$${s.totalRev.toLocaleString('pt-BR')}, ${s.active} clientes ativos, margem ${s.margin}%.`,messages:[{role:'user',content:`Contexto: ${ctx}\n\nCrie a mensagem de WhatsApp:`}]})});
+    const data=await r.json();
+    if(data.content&&data.content[0]){prev.textContent=data.content[0].text;sendArea.style.display='flex';flog('📲','WhatsApp','mensagem gerada');}
+    else{prev.textContent='Erro ao gerar.';}
+  }catch{prev.textContent='Erro de conexão.';}
+}
+
+function sendWaMsg(){
+  const num=document.getElementById('wa-dest').value.replace(/\D/g,'');
+  const msg=document.getElementById('wa-msg-preview').textContent;
+  if(!num){alert('Digite o número!');return;}
+  if(!msg||msg==='Gerando mensagem...'){alert('Gere a mensagem primeiro!');return;}
+  window.open(`https://wa.me/55${num}?text=${encodeURIComponent(msg)}`,'_blank');
+  flog('📲','WhatsApp','mensagem enviada');
+}
+
+// ═══════════════════════════════════════════
+//  PDF REPORT
+// ═══════════════════════════════════════════
+function buildPDFPreview(){
+  const period=document.getElementById('pdf-period').value;
+  const clientSel=document.getElementById('pdf-client').value;
+  const s=calcStats();
+  const fc=clientSel==='Todos os clientes'?clients:clients.filter(c=>c.name===clientSel);
+  const fRev=fc.reduce((s,c)=>s+c.rev,0);
+  const fCost=fc.reduce((s,c)=>s+c.cost,0);
+  const fMargin=fRev>0?Math.round(((fRev-fCost)/fRev)*100):0;
+  document.getElementById('pdf-preview').innerHTML=`
+    <div class="pdf-header">
+      <div><div class="pdf-logo">💣 KITSUNE AGENCY</div><div style="font-size:11px;color:#666;margin-top:3px">Agência Digital Autônoma com IA</div></div>
+      <div style="text-align:right;font-size:11px;color:#666"><div style="font-size:13px;font-weight:700;color:#e94560">${period}</div><div>Gerado em ${new Date().toLocaleDateString('pt-BR')}</div><div>${clientSel}</div></div>
+    </div>
+    <div class="pdf-metrics">
+      <div class="pdf-metric"><div class="pdf-metric-val" style="color:#27ae60">R$${fRev.toLocaleString('pt-BR')}</div><div class="pdf-metric-lbl">Receita</div></div>
+      <div class="pdf-metric"><div class="pdf-metric-val" style="color:#e74c3c">R$${fCost.toLocaleString('pt-BR')}</div><div class="pdf-metric-lbl">Custos</div></div>
+      <div class="pdf-metric"><div class="pdf-metric-val" style="color:#f39c12">R$${(fRev-fCost).toLocaleString('pt-BR')}</div><div class="pdf-metric-lbl">Lucro</div></div>
+      <div class="pdf-metric"><div class="pdf-metric-val">${fMargin}%</div><div class="pdf-metric-lbl">Margem</div></div>
+    </div>
+    <div style="margin-bottom:16px"><h3 style="font-size:12px;color:#0d0d1a;margin-bottom:8px;border-left:4px solid #e94560;padding-left:8px">Clientes & Resultados</h3>
+    <table class="pdf-table"><tr><th>Cliente</th><th>Serviço</th><th>Receita</th><th>Custo</th><th>Margem</th><th>Status</th></tr>
+    ${fc.map(c=>{const m=c.rev>0?Math.round(((c.rev-c.cost)/c.rev)*100):0;return`<tr><td><b>${c.name}</b></td><td>${c.service}</td><td>R$${c.rev.toLocaleString('pt-BR')}</td><td>R$${c.cost.toLocaleString('pt-BR')}</td><td style="color:${m>=60?'#27ae60':m>=40?'#f39c12':'#e74c3c'}">${m}%</td><td>${c.status}</td></tr>`;}).join('')}
+    </table></div>
+    <div><h3 style="font-size:12px;color:#0d0d1a;margin-bottom:8px;border-left:4px solid #e94560;padding-left:8px">Criativos & Aprovações</h3>
+    <table class="pdf-table"><tr><th>Criativo</th><th>Cliente</th><th>Formato</th><th>Status</th><th>Data</th></tr>
+    ${approvals.map(a=>`<tr><td>${a.name}</td><td>${a.client}</td><td>${a.format}</td><td>${a.status==='approved'?'✅ Aprovado':a.status==='pending'?'⏳ Aguardando':'🔄 Revisão'}</td><td>${a.date}</td></tr>`).join('')}
+    </table></div>
+    <div class="pdf-footer"><span>💣 Kitsune Agency — ${period}</span><span>Confidencial · Uso interno</span></div>`;
+}
+
+function printPDF(){
+  buildPDFPreview();
+  const content=document.getElementById('pdf-preview').innerHTML;
+  const period=document.getElementById('pdf-period').value;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Relatório ${period} — Kitsune Agency</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;padding:30px;color:#1a1a2e;max-width:900px;margin:0 auto;}.pdf-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #e94560;padding-bottom:14px;margin-bottom:20px;}.pdf-logo{font-size:13px;font-weight:900;color:#e94560;}.pdf-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.pdf-metric{background:#f8f8ff;border-radius:6px;padding:10px;text-align:center;border:1px solid #eee;}.pdf-metric-val{font-size:22px;font-weight:700;}.pdf-metric-lbl{font-size:11px;color:#666;margin-top:3px;}.pdf-table{width:100%;border-collapse:collapse;font-size:11px;}.pdf-table th{background:#0d0d1a;color:white;padding:7px 9px;text-align:left;}.pdf-table td{padding:6px 9px;border-bottom:1px solid #eee;}.pdf-table tr:nth-child(even) td{background:#f9f9ff;}.pdf-footer{border-top:1px solid #eee;padding-top:10px;font-size:10px;color:#999;display:flex;justify-content:space-between;margin-top:20px;}@media print{body{padding:15px;}@page{margin:15mm;}}</style></head><body>${content}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  w.document.close();flog('📄','Relatório','PDF gerado');
+}
+
+async function aiAnalysis(){
+  const period=document.getElementById('pdf-period').value;
+  const s=calcStats();
+  const res=document.getElementById('ai-analysis-result');
+  res.style.display='block';res.textContent='Analisando com IA...';
+  const clientData=clients.map(c=>({nome:c.name,servico:c.service,receita:c.rev,custo:c.cost,margem:c.rev>0?Math.round(((c.rev-c.cost)/c.rev)*100):0,status:c.status}));
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,system:'Você é o Estrategista da Kitsune Agency. Analise os dados e dê insights acionáveis em português.',messages:[{role:'user',content:`Período: ${period}\nReceita: R$${s.totalRev.toLocaleString('pt-BR')}\nCustos: R$${s.totalCost.toLocaleString('pt-BR')}\nMargem: ${s.margin}%\nClientes: ${JSON.stringify(clientData)}\n\nDê: 1) Análise dos números, 2) Clientes que precisam de atenção, 3) Oportunidades, 4) Próximos passos.`}]})});
+    const data=await r.json();
+    if(data.content&&data.content[0]){res.innerHTML=data.content[0].text.replace(/\n/g,'<br>');flog('🧠','IA','análise gerada');}
+    else{res.textContent='Erro.';}
+  }catch{res.textContent='Erro de conexão.';}
+}
+
+function genPDFWa(){
+  const s=calcStats();
+  const period=document.getElementById('pdf-period').value;
+  const num=prompt('Número WhatsApp (com DDD):');if(!num)return;
+  const msg=encodeURIComponent(`📊 *Relatório ${period} — Kitsune Agency*\n\n💰 Receita: R$${s.totalRev.toLocaleString('pt-BR')}\n📉 Custos: R$${s.totalCost.toLocaleString('pt-BR')}\n💵 Lucro: R$${s.profit.toLocaleString('pt-BR')}\n📈 Margem: ${s.margin}%\n👥 Clientes ativos: ${s.active}\n\nQualquer dúvida, estamos à disposição! 🚀`);
+  window.open(`https://wa.me/55${num.replace(/\D/g,'')}?text=${msg}`,'_blank');
+}
+
+// ═══════════════════════════════════════════
+//  NOTEBOOKS
+// ═══════════════════════════════════════════
+function buildNbCards(){
+  document.getElementById('nb-cards').innerHTML=NOTEBOOKS.map(nb=>`
+    <div class="nb-card ${nb.id===activeNbId?'active':''}" id="nbc-${nb.id}" onclick="selectNb('${nb.id}')">
+      <div class="nb-card-title"><span style="font-size:20px">${nb.icon}</span>${nb.title}</div>
+      <div class="nb-card-desc">${nb.desc}</div>
+      <div class="nb-tags">${nb.tags.map(t=>`<span class="nb-tag">${t}</span>`).join('')}</div>
+      ${nb.ctx?`<div style="font-size:11px;color:var(--green);margin-top:4px">✅ Contexto carregado</div>`:`<div style="font-size:11px;color:var(--gray);margin-top:4px">Vazio</div>`}
+    </div>`).join('');
+}
+
+function selectNb(id){
+  activeNbId=id;
+  const nb=NOTEBOOKS.find(n=>n.id===id);
+  if(nb&&nb.ctx)document.getElementById('nb-ctx-input').value=nb.ctx;
+  buildNbCards();
+}
+
+function injectCtx(){
+  const ctx=document.getElementById('nb-ctx-input').value.trim();
+  if(!ctx){alert('Cole o contexto primeiro!');return;}
+  const assign=document.getElementById('nb-assign').value;
+  agencyCtx[assign]=ctx;
+  if(activeNbId){const nb=NOTEBOOKS.find(n=>n.id===activeNbId);if(nb)nb.ctx=ctx;}
+  buildNbCards();
+  const bar=document.getElementById('nb-ctx-bar');bar.style.display='flex';
+  document.getElementById('nb-ctx-label').textContent=`Contexto ativo → ${assign==='all'?'todos os agentes':AGENTS.find(a=>a.id===assign)?.name||assign}`;
+  const res=document.getElementById('nb-result');res.style.display='block';res.textContent='✅ Contexto injetado! Agentes usarão este briefing nas próximas respostas.';
+  flog('📓','NotebookLM',`contexto injetado`);
+}
+
+async function analyzeCtx(){
+  const ctx=document.getElementById('nb-ctx-input').value.trim();
+  if(!ctx){alert('Cole o contexto!');return;}
+  const res=document.getElementById('nb-result');res.style.display='block';res.textContent='Analisando...';
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,system:'Analise o briefing e extraia: 1) Pontos-chave para marketing, 2) Público-alvo, 3) Oportunidades, 4) Gaps. Em português.',messages:[{role:'user',content:`Analise:\n\n${ctx}`}]})});
+    const data=await r.json();
+    if(data.content&&data.content[0])res.innerHTML=data.content[0].text.replace(/\n/g,'<br>');
+    else res.textContent='Erro.';
+  }catch{res.textContent='Erro de conexão.';}
+}
+
+function clearNbCtx(){agencyCtx={all:'',strat:'',copy:'',nano:'',traf:'',seo:'',social:''};document.getElementById('nb-ctx-bar').style.display='none';flog('📓','NotebookLM','contexto limpo');}
+
+// ═══════════════════════════════════════════
+//  REFERÊNCIAS
+// ═══════════════════════════════════════════
+const TYPE_ICONS={'🖼️ Imagem':'🖼️','🎬 Vídeo':'🎬','📄 Documento':'📄','🎨 Referência visual':'🎨','🔤 Fonte/Tipografia':'🔤','🎵 Áudio':'🎵','📦 Outro':'📦'};
+
+function onDragOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('drag-over');}
+function onDragLeave(){document.getElementById('drop-zone').classList.remove('drag-over');}
+function onDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');handleFiles(e.dataTransfer.files);}
+
+function handleFiles(files){
+  if(!files||!files.length)return;
+  pendingFiles=Array.from(files);
+  document.getElementById('meta-form').style.display='flex';
+  document.getElementById('mf-desc').value='';document.getElementById('mf-tags').value='';
+  const types=pendingFiles.map(f=>{if(f.type.startsWith('image/'))return'🖼️ Imagem';if(f.type.startsWith('video/'))return'🎬 Vídeo';if(f.type.includes('pdf')||f.type.includes('document'))return'📄 Documento';if(f.type.startsWith('font/')||f.name.match(/\.(ttf|otf|woff)/i))return'🔤 Fonte/Tipografia';if(f.type.startsWith('audio/'))return'🎵 Áudio';return'📦 Outro';});
+  const sel=document.getElementById('mf-type');
+  for(let i=0;i<sel.options.length;i++){if(sel.options[i].value===types[0]){sel.selectedIndex=i;break;}}
+  updateMfClientSelect();
+}
+
+function updateMfClientSelect(){
+  const sel=document.getElementById('mf-client');
+  sel.innerHTML=`<option>Geral / Agência</option>`+clients.map(c=>`<option>${c.name}</option>`).join('');
+}
+
+function cancelMeta(){pendingFiles=[];document.getElementById('meta-form').style.display='none';document.getElementById('file-input').value='';}
+
+function saveMedia(){
+  if(!pendingFiles.length)return;
+  const type=document.getElementById('mf-type').value;
+  const client=document.getElementById('mf-client').value;
+  const desc=document.getElementById('mf-desc').value;
+  const tags=document.getElementById('mf-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const now=new Date().toLocaleDateString('pt-BR');
+  pendingFiles.forEach(file=>{
+    const item={id:Date.now()+Math.random(),name:file.name,type,client,desc,tags,date:now,size:fmtBytes(file.size),mimeType:file.type,src:null};
+    if(file.type.startsWith('image/')||file.type.startsWith('video/')){const reader=new FileReader();reader.onload=e=>{item.src=e.target.result;renderMedia();renderMediaStats();};reader.readAsDataURL(file);}
+    mediaLib.unshift(item);
+  });
+  cancelMeta();renderMedia();renderMediaStats();flog('📁','Referências',`${pendingFiles.length} arquivo(s) adicionado(s)`);
+}
+
+function fmtBytes(b){if(b<1024)return b+'B';if(b<1048576)return (b/1024).toFixed(1)+'KB';return (b/1048576).toFixed(1)+'MB';}
+
+function setMF(el,f){mediaFilter=f;document.querySelectorAll('.fchip[data-mf]').forEach(c=>c.classList.remove('on'));el.classList.add('on');renderMedia();}
+
+function renderMedia(){
+  const grid=document.getElementById('media-grid');
+  const q=(document.getElementById('media-search').value||'').toLowerCase();
+  const filtered=mediaLib.filter(m=>{
+    const mf=mediaFilter==='all'||m.type===mediaFilter;
+    const mq=!q||m.name.toLowerCase().includes(q)||m.desc.toLowerCase().includes(q)||m.tags.some(t=>t.toLowerCase().includes(q));
+    return mf&&mq;
+  });
+  if(!filtered.length){grid.innerHTML=`<div class="media-empty"><div style="font-size:36px;opacity:.3;margin-bottom:8px">${mediaFilter==='all'?'📂':TYPE_ICONS[mediaFilter]||'📂'}</div><div style="font-size:14px;line-height:1.6">${mediaLib.length?'Sem resultado.':'Nenhuma mídia.<br>Arraste ou clique para adicionar!'}</div></div>`;return;}
+  grid.innerHTML=filtered.map(m=>{
+    const icon=TYPE_ICONS[m.type]||'📦';
+    const thumbHtml=m.src?(m.mimeType&&m.mimeType.startsWith('video/')?`<video src="${m.src}" muted style="width:100%;height:100%;object-fit:cover"></video>`:`<img src="${m.src}" alt="${m.name}" style="width:100%;height:100%;object-fit:cover">`):`<div class="media-ph">${icon}</div>`;
+    return`<div class="media-card">
+      <div class="media-thumb">
+        ${thumbHtml}
+        <div class="media-ov">
+          ${m.src?`<div class="mov-btn" onclick="viewMedia('${m.id}')">🔍</div>`:''}
+          <div class="mov-btn" onclick="deleteMedia('${m.id}')">🗑️</div>
+        </div>
+      </div>
+      <div class="media-info">
+        <div class="media-name">${m.name}</div>
+        <div class="media-meta">${m.date} · ${m.size}</div>
+        <div class="mtags"><span class="mtag" style="color:var(--yellow)">${m.type}</span><span class="mtag">${m.client}</span>${m.tags.slice(0,2).map(t=>`<span class="mtag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function viewMedia(id){const m=mediaLib.find(x=>String(x.id)===String(id)||x.id===parseFloat(id));if(!m||!m.src)return;const w=window.open('','_blank');const isVid=m.mimeType&&m.mimeType.startsWith('video/');w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:100vh">${isVid?`<video src="${m.src}" controls style="max-width:100%;max-height:100vh">`:`<img src="${m.src}" style="max-width:100%;max-height:100vh;object-fit:contain">`}</body></html>`);}
+function deleteMedia(id){if(!confirm('Remover?'))return;mediaLib=mediaLib.filter(m=>String(m.id)!==String(id)&&m.id!==parseFloat(id));renderMedia();renderMediaStats();}
+
+function renderMediaStats(){
+  document.getElementById('media-stats').innerHTML=`
+    <div class="scard"><div class="scard-lbl">Total de arquivos</div><div class="scard-val" style="color:var(--yellow)">${mediaLib.length}</div></div>
+    <div class="scard"><div class="scard-lbl">Imagens</div><div class="scard-val" style="color:var(--blue)">${mediaLib.filter(m=>m.type==='🖼️ Imagem').length}</div></div>
+    <div class="scard"><div class="scard-lbl">Referências</div><div class="scard-val" style="color:var(--purple)">${mediaLib.filter(m=>m.type==='🎨 Referência visual').length}</div></div>
+    <div class="scard"><div class="scard-lbl">Documentos</div><div class="scard-val" style="color:var(--nb)">${mediaLib.filter(m=>m.type==='📄 Documento').length}</div></div>`;
+}
+
+// ═══════════════════════════════════════════
+//  FORMATOS GUIDE
+// ═══════════════════════════════════════════
+function buildFmtGuide(){
+  document.getElementById('fmt-guide').innerHTML=FORMATS_GUIDE.map(p=>`
+    <div class="fgsec">
+      <div class="fghdr" style="color:${p.c}">${p.plat}</div>
+      ${p.fmts.map(f=>`
+        <div class="fgrow">
+          <div class="fgvis"><span style="font-size:9px;color:var(--gray);text-align:center;line-height:1.3">${f.sz.split('×')[0]}<br>×<br>${(f.sz.split('×')[1]||'').split(' ')[0]}</span></div>
+          <div class="fgbody"><div class="fgname">${f.n}</div><div class="fgsz">${f.sz}</div><div class="fgtips">${f.t}</div></div>
+          <button class="fguse" onclick="go('des');setTimeout(()=>document.getElementById('iprompt').focus(),100)">Usar</button>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+buildGrid();
+buildChips();
+buildPipGrid();
+buildFmtGrid();
+buildStyleRow();
+buildWaTpls();
+buildNbCards();
+renderMedia();
+renderMediaStats();
+renderFinancial();
+renderFinChart();
+renderApprovals();
+renderGallery();
+buildPDFPreview();
+updateMfClientSelect();
+
+setTimeout(()=>{
+  createPipSprites();
+  addMsg('sys',null,'💣 Kitsune Agency — Sistema completo iniciado!');
+  addMsg('bot','🧠 Estrategista','Time pronto! Pipeline, designer, galeria, financeiro, WhatsApp, aprovações e relatórios online. Qual é a missão de hoje?');
+  flog('💣','Sistema','Kitsune Agency v5 inicializada');
+  flog('🍌','Nano Banana','blueprints Mazzei + Franco carregados');
+  flog('🔗','Pipeline','6 agentes em cadeia prontos');
+  pickAgent(AGENTS[0]);
+},300);
+</script>
+</body>
+</html>
