@@ -11,7 +11,7 @@ export default async function handler(req, res) {
             parameters: { sampleCount: 1, aspectRatio: aspectRatio || '1:1' }
         };
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${key}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${key}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
