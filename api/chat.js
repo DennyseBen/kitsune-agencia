@@ -4,25 +4,56 @@ export default async function handler(req, res) {
     }
 
     try {
-        const aiKey = process.env.ANTHROPIC_API_KEY;
+        const aiKey = process.env.GEMINI_API_KEY;
         if (!aiKey) {
             return res.status(500).json({
-                content: [{ text: "⚠️ ERRO: A variável ANTHROPIC_API_KEY não foi configurada no painel da Vercel." }]
+                content: [{ text: "⚠️ ERRO: A variável GEMINI_API_KEY não foi configurada no painel da Vercel." }]
             });
         }
 
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const { system, messages } = req.body;
+
+        // Converte o formato Anthropic recebido do Front-end para o formato do Gemini
+        const geminiContents = messages.map((msg) => ({
+            role: msg.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: String(msg.content) }]
+        }));
+
+        const payload = {
+            contents: geminiContents,
+        };
+
+        // Instruction de sistema
+        if (system) {
+            payload.systemInstruction = {
+                parts: [{ text: String(system) }]
+            };
+        }
+
+        // Chama o Gemini 1.5 Flash (Super rápido para agentes repetitivos)
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${aiKey}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': aiKey,
-                'anthropic-version': '2023-06-01'
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(req.body)
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
-        return res.status(200).json(data);
+
+        if (data.error) {
+            return res.status(500).json({
+                content: [{ text: `⚠️ ERRO Gemini: ${data.error.message}` }]
+            });
+        }
+
+        // Pega o texto gerado pelo Gemini e formata como o Frontend (Anthropic) esperava
+        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Erro: Resposta vazia da IA Gemini.';
+
+        return res.status(200).json({
+            content: [{ text: replyText }]
+        });
+
     } catch (error) {
         return res.status(500).json({
             content: [{ text: `⚠️ ERRO Backend (Vercel): ${error.message}` }]
