@@ -2800,8 +2800,8 @@
         .forEach(t => { if (t.id !== fromId && t.kw.some(k => lower.includes(k))) { const a = AGENTS.find(x => x.id === t.id); setTimeout(() => { boom(t.id, 'mc'); flog(a.emoji, a.name, 'acionado por ' + AGENTS.find(x => x.id === fromId).name); }, 700 + Math.random() * 1000); } });
     }
 
-    document.getElementById('csb').onclick = sendChat;
-    document.getElementById('cin').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } };
+    document.getElementById('csb').onclick = () => setTimeout(sendChat, 0);
+    document.getElementById('cin').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setTimeout(sendChat, 0); } };
 
     // ═══════════════════════════════════════════
     //  PIPELINE
