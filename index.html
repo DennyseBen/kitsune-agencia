@@ -2231,13 +2231,6 @@
             <div style="font-size:12px;color:var(--gray);margin-top:10px;">Logo do Cliente (Aplicação automática):</div>
             <select id="logo-select" style="width:100%;margin-bottom:12px;background:rgba(255,255,255,.06);border:1px solid var(--gemini);border-radius:6px;padding:8px;color:var(--white);font-size:13px;outline:none;"><option value="">Nenhum (Sem logo)</option></select>
             <button class="genbtn" id="genbtn" onclick="genImg()">🍌 GERAR COM GEMINI IMAGEN</button>
-            <div class="krow">
-              <input id="gkey" type="password" placeholder="Cole sua chave API Gemini aqui...">
-              <button
-                style="padding:9px 12px;background:rgba(66,133,244,.2);border:1px solid rgba(66,133,244,.4);border-radius:7px;color:var(--gemini);font-family:'VT323',monospace;font-size:14px;cursor:pointer;white-space:nowrap;"
-                onclick="saveGKey()">Salvar</button>
-            </div>
-            <div id="keystatus" style="font-size:12px;color:var(--gray)">⚠️ Sem chave — só brief textual</div>
             <div id="ires"></div>
             <div id="ibrief"
               style="display:none;background:var(--bg3);border:1px solid rgba(168,85,247,.2);border-radius:8px;padding:11px;font-size:14px;color:var(--white);line-height:1.5;">
@@ -3035,7 +3028,7 @@
       ires.innerHTML = ''; ibr.style.display = 'none';
       const fmt = FORMATS_DEF.find(f => f.id === selFmt) || FORMATS_DEF[0];
       flog('🍌', 'Nano Banana', 'gerando com Gemini...');
-      const enhanced = `Crie prompt de imagem para:\nDescrição: ${prompt}\nFormato: ${fmt.n} (${fmt.sz})\nEstilo: ${selStyle}\n\nResponda:\nPROMPT_EN: [prompt detalhado em inglês]\nDESCRICAO: [descrição visual em português]`;
+      const enhanced = `Transform the following into a detailed visual image prompt in English, suitable for Imagen AI. Focus on colors, composition, lighting, objects, and visual style. Avoid words like "ad", "advertisement", "marketing", "promotional", "banner", "campaign". Instead describe only what is visually in the scene.\n\nDescription: ${prompt}\nFormat: ${fmt.n} (${fmt.sz})\nVisual style: ${selStyle}\n\nRespond with:\nPROMPT_EN: [detailed English image prompt, purely visual, no marketing language]\nDESCRICAO: [descrição visual em português]`;
       try {
         const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, system: 'Você é o Nano Banana, Designer IA da Kitsune Agency, treinado com Mazzei Design e Rafael Franco.', messages: [{ role: 'user', content: enhanced }] }) });
         const data = await r.json();
