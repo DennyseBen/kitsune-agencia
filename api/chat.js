@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         }
 
         // Chama o Gemini 1.5 Flash (Super rápido para agentes repetitivos)
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${aiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${aiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
