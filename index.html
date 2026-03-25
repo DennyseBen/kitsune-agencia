@@ -2157,6 +2157,7 @@
       <div class="ntab" onclick="go('nb')">📓 Notebooks</div>
       <div class="ntab" onclick="go('ref')">📁 Referências</div>
       <div class="ntab" onclick="go('fmt')">📐 Formatos</div>
+      <div class="ntab" onclick="go('aud')">🎙️ Áudio</div>
       <div class="nsp"></div>
       <div class="nbadge nb-gem" onclick="go('des')">✨ Gemini</div>
       <div class="nbadge nb-wa" onclick="go('wa')">● WhatsApp</div>
@@ -2181,7 +2182,7 @@
           </div>
           <div id="achips"></div>
           <div id="msgs"></div>
-          <div id="ciw"><textarea id="cin" rows="2" placeholder="Comande o time..."></textarea><button
+          <div id="ciw"><textarea id="cin" rows="2" placeholder="Comande o time..."></textarea><button id="mic-btn" onclick="toggleChatRec()" title="Gravar voz" style="padding:0 10px;background:rgba(233,69,96,.15);border:1px solid rgba(233,69,96,.3);border-radius:7px;color:var(--red);font-size:16px;cursor:pointer;flex-shrink:0;">🎤</button><button
               id="csb">GO</button></div>
         </div>
       </div>
@@ -2522,6 +2523,32 @@
         <div class="pscroll" id="fmt-guide"></div>
       </div>
 
+      <!-- ÁUDIO -->
+      <div id="aud-screen" class="screen">
+        <div class="pscroll" style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-title" style="color:var(--purple)">🎙️ Upload de Áudio</div>
+            <input type="file" id="aud-file" accept="audio/*" style="display:none" onchange="handleAudFile(this)">
+            <button onclick="document.getElementById('aud-file').click()" style="width:100%;padding:12px;background:rgba(168,85,247,.15);border:1px dashed rgba(168,85,247,.4);border-radius:8px;color:var(--purple);font-family:'VT323',monospace;font-size:16px;cursor:pointer;margin-bottom:10px;">📁 Selecionar arquivo de áudio (MP3, WAV, OGG, M4A...)</button>
+            <div id="aud-filename" style="font-size:12px;color:var(--gray);margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <button onclick="runAudio('transcribe')" class="genbtn" style="flex:1">📝 Transcrever</button>
+              <button onclick="runAudio('analyze')" class="genbtn" style="flex:1;background:rgba(66,133,244,.2);border-color:rgba(66,133,244,.4);color:var(--gemini)">🔍 Analisar</button>
+              <button onclick="runAudio('both')" class="genbtn" style="flex:1;background:rgba(245,166,35,.15);border-color:rgba(245,166,35,.4);color:var(--yellow)">⚡ Tudo</button>
+            </div>
+            <div id="aud-result" style="display:none;background:var(--bg3);border:1px solid rgba(168,85,247,.2);border-radius:8px;padding:14px;font-size:13px;color:var(--white);line-height:1.6;white-space:pre-wrap;max-height:400px;overflow-y:auto;"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="color:var(--green)">🎤 Gravar Voz</div>
+            <div style="font-size:13px;color:var(--gray);margin-bottom:10px;">Grave e envie como mensagem para o agente selecionado no chat.</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button id="rec-btn" onclick="toggleRec()" style="padding:12px 20px;background:rgba(233,69,96,.2);border:1px solid rgba(233,69,96,.4);border-radius:8px;color:var(--red);font-family:'VT323',monospace;font-size:16px;cursor:pointer;">🔴 Iniciar Gravação</button>
+              <div id="rec-status" style="font-size:13px;color:var(--gray);">Parado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- #main -->
   </div><!-- #shell -->
 
@@ -2678,7 +2705,7 @@
     //  NAV
     // ═══════════════════════════════════════════
     const SCREEN_MAP = { map: 'map-screen', pip: 'pip-screen', des: 'des-screen', gal: 'gal-screen', fin: 'fin-screen', appr: 'appr-screen', wa: 'wa-screen', pdf: 'pdf-screen', nb: 'nb-screen', ref: 'ref-screen', fmt: 'fmt-screen' };
-    const TAB_IDX = { map: 0, pip: 1, des: 2, gal: 3, fin: 4, appr: 5, wa: 6, pdf: 7, nb: 8, ref: 9, fmt: 10 };
+    const TAB_IDX = { map: 0, pip: 1, des: 2, gal: 3, fin: 4, appr: 5, wa: 6, pdf: 7, nb: 8, ref: 9, fmt: 10, aud: 11 };
 
     function go(name) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -3547,6 +3574,82 @@
         });
       }
     }, 300);
+
+    // ═══════════════════════════════════════════
+    //  ÁUDIO
+    // ═══════════════════════════════════════════
+    let audFile = null, audMime = null;
+    let mediaRec = null, audChunks = [], isRec = false, isChatRec = false;
+
+    function handleAudFile(input) {
+      const f = input.files[0]; if (!f) return;
+      audFile = f; audMime = f.type || 'audio/mpeg';
+      document.getElementById('aud-filename').textContent = `✅ ${f.name} (${(f.size/1024).toFixed(1)} KB)`;
+    }
+
+    async function runAudio(mode) {
+      if (!audFile) { alert('Selecione um arquivo de áudio primeiro.'); return; }
+      const res = document.getElementById('aud-result');
+      res.style.display = 'block'; res.textContent = '⏳ Processando...';
+      try {
+        const b64 = await toBase64(audFile);
+        const r = await fetch('/api/audio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audioBase64: b64, mimeType: audMime, mode }) });
+        const data = await r.json();
+        res.textContent = data.text || data.error || 'Sem resposta.';
+      } catch (e) { res.textContent = '⚠️ Erro: ' + e.message; }
+    }
+
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function startRec(onStop) {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audChunks = [];
+      mediaRec = new MediaRecorder(stream);
+      mediaRec.ondataavailable = e => audChunks.push(e.data);
+      mediaRec.onstop = () => { stream.getTracks().forEach(t => t.stop()); onStop(new Blob(audChunks, { type: 'audio/webm' })); };
+      mediaRec.start();
+    }
+
+    function toggleRec() {
+      const btn = document.getElementById('rec-btn'), st = document.getElementById('rec-status');
+      if (!isRec) {
+        startRec(blob => {
+          audFile = blob; audMime = 'audio/webm';
+          document.getElementById('aud-filename').textContent = `✅ Gravação capturada (${(blob.size/1024).toFixed(1)} KB)`;
+          st.textContent = 'Parado'; btn.textContent = '🔴 Iniciar Gravação'; isRec = false;
+        });
+        isRec = true; btn.textContent = '⏹️ Parar Gravação'; btn.style.borderColor = 'var(--red)'; st.textContent = '🔴 Gravando...';
+      } else {
+        mediaRec.stop(); isRec = false;
+      }
+    }
+
+    function toggleChatRec() {
+      const btn = document.getElementById('mic-btn');
+      if (!isChatRec) {
+        startRec(async blob => {
+          btn.textContent = '⏳'; isChatRec = false;
+          try {
+            const b64 = await toBase64(blob);
+            const r = await fetch('/api/audio', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audioBase64: b64, mimeType: 'audio/webm', mode: 'transcribe' }) });
+            const data = await r.json();
+            if (data.text) { document.getElementById('cin').value = data.text; }
+          } catch(e) { console.error(e); }
+          btn.textContent = '🎤'; btn.style.color = 'var(--red)';
+        });
+        isChatRec = true; btn.textContent = '⏹️'; btn.style.color = 'var(--yellow)';
+      } else {
+        mediaRec.stop(); isChatRec = false;
+      }
+    }
+
   </script>
 </body>
 
