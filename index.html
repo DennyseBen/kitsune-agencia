@@ -2228,6 +2228,8 @@
             <div class="fmt-grid" id="fmtgrid"></div>
             <div style="font-size:12px;color:var(--gray)">Estilo:</div>
             <div class="srow" id="srow"></div>
+            <div style="font-size:12px;color:var(--gray);margin-top:10px;">Logo do Cliente (Aplicação automática):</div>
+            <select id="logo-select" style="width:100%;margin-bottom:12px;background:rgba(255,255,255,.06);border:1px solid var(--gemini);border-radius:6px;padding:8px;color:var(--white);font-size:13px;outline:none;"><option value="">Nenhum (Sem logo)</option></select>
             <button class="genbtn" id="genbtn" onclick="genImg()">🍌 GERAR COM GEMINI IMAGEN</button>
             <div class="krow">
               <input id="gkey" type="password" placeholder="Cole sua chave API Gemini aqui...">
@@ -2555,7 +2557,7 @@
     //  DADOS GLOBAIS
     // ═══════════════════════════════════════════
     const AGENTS = [
-      { id: 'strat', name: 'Estrategista', emoji: '🧠', color: '#e94560', task: 'Estratégia', status: 'working', role: 'Você é o Estrategista de Marketing Digital sênior da Kitsune Agency. Responda em português. Seja direto e estratégico. Quando relevante, mencione que vai delegar para os outros agentes. Contexto da agência: {CTX}' },
+      { id: 'strat', name: 'CEO', emoji: '👔', color: '#e94560', task: 'Liderança', status: 'working', role: 'Você é o CEO e Líder Estratégico da Kitsune Agency. Seu papel é direcionar clientes, treinar agentes, criar Guias de Estilo e exigir materiais. ANTES de qualquer estratégia pronta, faça 3-4 perguntas investigativas de briefing e peça gentilmente que o cliente adicione os Logotipos e Guias de Marca oficiais na aba "Referências". Jamais dê respostas definitivas antes desse briefing inicial. Contexto: {CTX}' },
       { id: 'copy', name: 'Copywriter', emoji: '✍️', color: '#f5a623', task: 'Copy & Ads', status: 'busy', role: 'Você é o Copywriter da Kitsune Agency. Responda em português. Crie textos persuasivos prontos para usar. Use técnicas AIDA e PAS. Contexto: {CTX}' },
       { id: 'nano', name: 'Nano Banana', emoji: '🍌', color: '#a855f7', task: 'Design IA', status: 'working', role: 'Você é o Nano Banana, Designer IA da Kitsune Agency, treinado com blueprints de Mazzei Design (infoprodutos, lançamentos, checkout) e Rafael Franco (social media BR, estética, IA aplicada). Responda em português. Oriente sobre design para marketing digital. Contexto: {CTX}' },
       { id: 'traf', name: 'Tráfego', emoji: '📊', color: '#45b7d1', task: 'Meta & Google', status: 'working', role: 'Você é o Gestor de Tráfego Pago da Kitsune Agency. Responda em português. Analise métricas (CPA, ROAS, CTR) e otimize campanhas. Contexto: {CTX}' },
@@ -2565,7 +2567,7 @@
 
     const PIPELINE_ORDER = ['strat', 'copy', 'nano', 'traf', 'seo', 'social'];
     const PIPELINE_AGENTS = [
-      { id: 'strat', name: 'Estrategista', emoji: '🧠', color: '#e94560', homeR: 1, homeC: 1, role: 'Você é o Estrategista da Kitsune Agency. Dado o objetivo, crie um PLANO ESTRATÉGICO dividido em 5 tarefas para: Copywriter, Designer (Nano Banana), Gestor de Tráfego, SEO Ninja, Social Media. Para cada: "AGENTE: [nome] | TAREFA: [descrição]". Responda em português.', deliverTo: 'copy' },
+      { id: 'strat', name: 'CEO', emoji: '👔', color: '#e94560', homeR: 1, homeC: 1, role: 'Você é o CEO da Kitsune Agency. Baseado no briefing recebido, crie O PLANO DIRETOR para o time (Copywriter, Nano Banana, Tráfego, SEO, Social Media). Distribua a visão da marca e os objetivos macros com firmeza de liderança. Ao final diga "🎯 Entregando as diretrizes master para a equipe!". Responda em português.', deliverTo: 'copy' },
       { id: 'copy', name: 'Copywriter', emoji: '✍️', color: '#f5a623', homeR: 1, homeC: 11, role: 'Você é o Copywriter da Kitsune Agency. Execute a tarefa do Estrategista criando textos REAIS e prontos: headlines, body copy, CTAs. Entregue o material concreto. Ao final diga "✅ Entregando para o Designer." Responda em português.', deliverTo: 'nano' },
       { id: 'nano', name: 'Nano Banana', emoji: '🍌', color: '#a855f7', homeR: 7, homeC: 1, role: 'Você é o Nano Banana, Designer IA treinado com Mazzei Design e Rafael Franco. Recebeu material do Copywriter. Crie BRIEF VISUAL DETALHADO: paleta de cores (com hex), tipografia, layout, formatos. Ao final diga "✅ Entregando para o Tráfego." Responda em português.', deliverTo: 'traf' },
       { id: 'traf', name: 'Tráfego', emoji: '📊', color: '#45b7d1', homeR: 7, homeC: 11, role: 'Você é o Gestor de Tráfego da Kitsune Agency. Recebeu o brief. Monte ESTRATÉGIA DE MÍDIA PAGA: plataformas, orçamento, segmentação, tipos de campanha, KPIs (CTR, CPA, ROAS). Ao final diga "✅ Entregando para o SEO Ninja." Responda em português.', deliverTo: 'seo' },
@@ -3050,7 +3052,31 @@
               if (id2.predictions && id2.predictions[0] && id2.predictions[0].bytesBase64Encoded) {
                 const b64 = id2.predictions[0].bytesBase64Encoded;
                 const mime = id2.predictions[0].mimeType || 'image/png';
-                const src = `data:${mime};base64,${b64}`;
+                let src = `data:${mime};base64,${b64}`;
+                
+                const logoVal = document.getElementById('logo-select') ? document.getElementById('logo-select').value : '';
+                if(logoVal) {
+                  try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const imgBase = new Image(); imgBase.src = src;
+                    await new Promise(r => imgBase.onload = r);
+                    canvas.width = imgBase.width; canvas.height = imgBase.height;
+                    ctx.drawImage(imgBase, 0, 0);
+                    
+                    const imgLogo = new Image(); imgLogo.src = logoVal;
+                    await new Promise(r => imgLogo.onload = r);
+                    
+                    // Scale logo to 20% of image width
+                    const lw = canvas.width * 0.20;
+                    const lh = (imgLogo.height / imgLogo.width) * lw;
+                    const padding = canvas.width * 0.05;
+                    ctx.drawImage(imgLogo, canvas.width - lw - padding, canvas.height - lh - padding, lw, lh);
+                    
+                    src = canvas.toDataURL('image/png', 0.95);
+                  } catch(err) { console.error("Erro ao aplicar logo:", err); }
+                }
+
                 ires.innerHTML = `<img src="${src}" style="width:100%;border-radius:8px;display:block">`;
                 addToGallery({ id: Date.now(), src, name: prompt.substring(0, 40), format: fmt.n, size: fmt.sz, style: selStyle, brief: pd, date: new Date().toLocaleDateString('pt-BR') });
                 flog('🍌', 'Nano Banana', 'criativo gerado e salvo na galeria!');
@@ -3418,6 +3444,7 @@
         mediaLib.unshift(item);
       });
       cancelMeta(); renderMedia(); renderMediaStats(); flog('📁', 'Referências', `${pendingFiles.length} arquivo(s) adicionado(s)`);
+      if(window.saveState) window.saveState();
     }
 
     function fmtBytes(b) { if (b < 1024) return b + 'B'; if (b < 1048576) return (b / 1024).toFixed(1) + 'KB'; return (b / 1048576).toFixed(1) + 'MB'; }
@@ -3432,6 +3459,8 @@
         const mq = !q || m.name.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q) || m.tags.some(t => t.toLowerCase().includes(q));
         return mf && mq;
       });
+      const logoSel = document.getElementById('logo-select');
+      if (logoSel) logoSel.innerHTML = '<option value="">Sem logo (Imagem limpa)</option>' + mediaLib.filter(m => m.type === '🖼️ Imagem' && m.src).map(m => `<option value="${m.src}">${m.name} [👤 ${m.client}]</option>`).join('');
       if (!filtered.length) { grid.innerHTML = `<div class="media-empty"><div style="font-size:36px;opacity:.3;margin-bottom:8px">${mediaFilter === 'all' ? '📂' : TYPE_ICONS[mediaFilter] || '📂'}</div><div style="font-size:14px;line-height:1.6">${mediaLib.length ? 'Sem resultado.' : 'Nenhuma mídia.<br>Arraste ou clique para adicionar!'}</div></div>`; return; }
       grid.innerHTML = filtered.map(m => {
         const icon = TYPE_ICONS[m.type] || '📦';
@@ -3454,7 +3483,7 @@
     }
 
     function viewMedia(id) { const m = mediaLib.find(x => String(x.id) === String(id) || x.id === parseFloat(id)); if (!m || !m.src) return; const w = window.open('', '_blank'); const isVid = m.mimeType && m.mimeType.startsWith('video/'); w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:100vh">${isVid ? `<video src="${m.src}" controls style="max-width:100%;max-height:100vh">` : `<img src="${m.src}" style="max-width:100%;max-height:100vh;object-fit:contain">`}</body></html>`); }
-    function deleteMedia(id) { if (!confirm('Remover?')) return; mediaLib = mediaLib.filter(m => String(m.id) !== String(id) && m.id !== parseFloat(id)); renderMedia(); renderMediaStats(); }
+    function deleteMedia(id) { if (!confirm('Remover?')) return; mediaLib = mediaLib.filter(m => String(m.id) !== String(id) && m.id !== parseFloat(id)); renderMedia(); renderMediaStats(); if(window.saveState) window.saveState(); }
 
     function renderMediaStats() {
       document.getElementById('media-stats').innerHTML = `
@@ -3512,7 +3541,7 @@
       if (window.db) {
         const kDoc = window.fsDoc(window.db, "agency", "main-state");
         window.saveState = () => {
-          window.fsSetDoc(kDoc, { clients, gallery, approvals }, { merge: true });
+          window.fsSetDoc(kDoc, { clients, gallery, approvals, mediaLib }, { merge: true });
         };
         window.fsOnSnapshot(kDoc, (d) => {
           if (d.exists()) {
@@ -3520,6 +3549,7 @@
             if (data.clients && data.clients.length) { clients = data.clients; renderFinancial(); renderFinChart(); updatePdfClientSelect(); }
             if (data.gallery && data.gallery.length) { gallery = data.gallery; renderGallery(); }
             if (data.approvals && data.approvals.length) { approvals = data.approvals; renderApprovals(); }
+            if (data.mediaLib && data.mediaLib.length) { mediaLib = data.mediaLib; renderMedia(); renderMediaStats(); }
           }
         });
       }
